@@ -3,10 +3,6 @@
     "host": "sigmaindia.in",
     "type": "Official distributor storefront"
   },
-  "reliance": {
-    "host": "www.reliancedigital.in",
-    "type": "Electronics retailer"
-  },
   "amazon": {
     "host": "www.amazon.in",
     "type": "Marketplace checkout"

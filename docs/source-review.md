@@ -1,5 +1,9 @@
 # Retail source review — 31 October 2026
 
+## Current exclusion — 1 November 2026
+
+Reliance Digital was removed at the user’s request after the checkout review. Its adapter, allowed purchase host and saved offers are excluded. The earlier verification notes below remain historical evidence, not active coverage.
+
 ## Update — 1 November 2026
 
 - **Sigma India / Shetala added:** Sigma's [global distributor directory](https://www.sigma-global.com/en/world-network/) identifies Shetala and sigmaindia.in. The [18–50mm product page](https://sigmaindia.in/product/18-50mm-f2-8-dc-dn-c/) has an INR selling price and direct Add to cart form. It does not bind that price to a selected mount. Import exactly one family listing with null mount/model code, `UNKNOWN` mount-specific stock, and a prominent mount-unconfirmed label. It cannot qualify for exact-variant matching or a mount-filter result. Do not fabricate four individually priced offers.

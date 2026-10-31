@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
-from refresh_sources import parse_amazon,parse_product,paise,refresh,base,validate_destination,RETAILERS,parse_rating,amazon_rating,save_snapshot,write_summary,SOURCES,parse_sigma_india,parse_reliance
+from refresh_sources import parse_amazon,parse_product,paise,refresh,base,validate_destination,RETAILERS,parse_rating,amazon_rating,save_snapshot,write_summary,SOURCES,parse_sigma_india
 AT='2026-10-31T10:00:00Z'
 class SourceContractTests(unittest.TestCase):
  def fixture(self,name):return (Path(__file__).parent/'fixtures'/name).read_text()
@@ -25,16 +25,6 @@ class SourceContractTests(unittest.TestCase):
   from bs4 import BeautifulSoup
   soup=BeautifulSoup(self.fixture('sigma-family.html'),'html.parser');soup.select_one('ins').decompose()
   with self.assertRaises(ValueError):parse_sigma_india(str(soup),AT)
- def test_reliance_does_not_claim_location_independent_stock(self):
-  row=parse_reliance(self.fixture('reliance-lens.html'),AT)[0];validate_destination(row)
-  self.assertEqual((row['modelCode'],row['mount'],row['pricePaise']),('SEL24105G','Sony E',10749000))
-  self.assertEqual(row['availability'],'UNKNOWN')
-  self.assertNotIn('productRating',row)
-  self.assertIn('pincode',row['conditionNotes'])
- def test_reliance_rejects_wrong_currency_or_product(self):
-  html=self.fixture('reliance-lens.html')
-  for bad in [html.replace('INR','USD'),html.replace('SEL24105G','CAMERA-KIT')]:
-   with self.subTest(),self.assertRaises(ValueError):parse_reliance(bad,AT)
  def test_brand_is_manufacturer_not_camera_mount(self):
   row=base("amazon","Amazon India","one","Sigma 35mm f/1.4 DG HSM Art [for Sony]",3450000,"https://www.amazon.in/dp/TEST",AT)
   self.assertEqual(row["brand"],"Sigma")
