@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RETAILERS = json.loads((ROOT/'backend'/'src'/'main'/'resources'/'retailers.json').read_text())
 ALLOWED = {entry['host'] for entry in RETAILERS.values()}
 SOURCES = [
+ ('sigmaindia', 'Sigma India / Shetala', 'https://sigmaindia.in/product/18-50mm-f2-8-dc-dn-c/', 'Official distributor product-family price; exact mount and mount-specific stock are unconfirmed'),
+ ('reliance', 'Reliance Digital', 'https://www.reliancedigital.in/product/sony-sel24105g-24-105-mm-standard-lens', 'Selected Sony FE 24–105mm retail listing; delivery and stock depend on pincode'),
  ('fujifilm', 'Fujifilm X India', 'https://fujifilmxindia.com/collections/lenses', 'Selected Fujifilm X lens from the manufacturer-linked authorised online store'),
  ('fotocentre', 'Foto Centre India', 'https://fotocentreindia.com/product/sony-fe-50mm-f1-8-lens-in-mumbai-india/', 'Selected Sony, Nikon, Sigma and Tamron lenses; mount variants and backorders stay separate'),
  ('justcanon', 'Just Canon', 'https://www.justcanon.in/products/canon-rf-50mm-f-1-8-stm', 'Selected new Canon RF lens; direct retail variant checkout'),
@@ -230,6 +232,53 @@ def parse_product(html,at,sid,name,url):
  if not rows:raise ValueError('No supported INR product offers found')
  return list(rows.values())
 
+def parse_sigma_india(html,at):
+ url='https://sigmaindia.in/product/18-50mm-f2-8-dc-dn-c/'
+ soup=BeautifulSoup(html,'html.parser')
+ panel=soup.select_one('.product__overview__block__body')
+ if panel is None:raise ValueError('Sigma product panel missing')
+ heading=panel.select_one('h1')
+ if not heading or not re.search(r'18-50mm\s+F2\.8\s+DC\s+DN',heading.get_text(' ',strip=True),re.I):raise ValueError('Unexpected Sigma product identity')
+ form=panel.select_one('form.cart')
+ if not form or form.get('action')!=url or not form.select_one('[name="add-to-cart"][value="573"]') or not form.select_one('button.single_add_to_cart_button:not([disabled])'):
+  raise ValueError('Sigma retail purchase control not verified')
+ price_nodes=panel.select('.price__product ins .amount') or [n for n in panel.select('.price__product .amount') if not n.find_parent('del')]
+ if len(price_nodes)!=1 or '₹' not in price_nodes[0].get_text():raise ValueError('Ambiguous Sigma current INR price')
+ mounts_label=next((p for p in panel.select('p') if p.get_text(' ',strip=True)=='Available mounts'),None)
+ mounts=mounts_label.find_next_sibling('ul') if mounts_label else None
+ if not mounts:raise ValueError('Sigma mount disclosure missing')
+ available=[li.get_text(' ',strip=True) for li in mounts.select('li')]
+ if not available:raise ValueError('Sigma mount disclosure empty')
+ row=base('sigmaindia','Sigma India / Shetala','573','Sigma 18-50mm F2.8 DC DN Contemporary',paise(price_nodes[0].get_text()),url,at,'NEW')
+ # The official page has one family price and no priced mount selector. Never
+ # expand it into invented mount offers or infer stock for a particular mount.
+ row['mount']=None
+ row['conditionLabel']='New · mount unconfirmed'
+ row['conditionNotes']='Official distributor product-family listing. Displayed price is not tied to a specific mount. Listed mount options: '+', '.join(available)+'. Confirm your mount, its price and stock with the store before payment; no mount-specific availability is inferred.'
+ return [row]
+
+def parse_reliance(html,at):
+ url='https://www.reliancedigital.in/product/sony-sel24105g-24-105-mm-standard-lens'
+ soup=BeautifulSoup(html,'html.parser');products=[]
+ heading=soup.select_one('h1')
+ if not heading or 'SEL24105G' not in heading.get_text():raise ValueError('Unexpected Reliance product identity')
+ for script in soup.select('script[type="application/ld+json"]'):
+  try:products.extend(product_nodes(json.loads(script.get_text())))
+  except (ValueError,TypeError):continue
+ matching=[p for p in products if p.get('name')=='Sony SEL24105G 24-105 mm Standard Lens']
+ if len(matching)!=1:raise ValueError('Reliance exact product missing or ambiguous')
+ product=matching[0];offer=product.get('offers')
+ if not isinstance(offer,dict) or offer.get('priceCurrency')!='INR':raise ValueError('Reliance current INR offer missing')
+ row=base('reliance','Reliance Digital','SEL24105G','Sony FE 24-105mm F4 G OSS',paise(offer.get('price','')),url,at,'NEW')
+ row.update(modelCode='SEL24105G',mount='Sony E',coverage='FULL_FRAME',autofocus=True,stabilized=True)
+ # JSON-LD says InStock even when the rendered checkout is unavailable.
+ # Without a visitor's delivery check, do not claim nationwide availability.
+ row['availability']='UNKNOWN'
+ row['conditionNotes']='Retail product listing with direct checkout. Availability and delivery depend on the pincode entered on Reliance Digital. Structured-data stock is not a verified delivery quote; check current stock, warranty and final price on the seller page. Conditional payment offers are excluded.'
+ rating=parse_rating(product.get('aggregateRating'))
+ if rating:row['productRating']=rating
+ return [row]
+
 def parse_amazon(html,at):
  soup=BeautifulSoup(html,'html.parser');rows=[]
  for card in soup.select('[data-component-type="s-search-result"]'):
@@ -258,7 +307,8 @@ def refresh(previous,reader=fetch):
    urls=PRODUCTS.get(sid,[url])
    for source in urls:
     html,at=reader(source)
-    gathered.extend(parse_amazon(html,at) if sid=='amazon' else parse_product(html,at,sid,name,source))
+    adapter={'amazon':parse_amazon,'sigmaindia':parse_sigma_india,'reliance':parse_reliance}.get(sid)
+    gathered.extend(adapter(html,at) if adapter else parse_product(html,at,sid,name,source))
     if reader is fetch:time.sleep(1)
    if not gathered:raise ValueError('Empty source result')
    for row in gathered:validate_destination(row)

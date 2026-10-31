@@ -17,5 +17,7 @@ class SellerPolicyTest {
   var policy=new SellerPolicy(new ObjectMapper());
   assertThatCode(()->policy.validate("cashify","https://www.cashify.in/buy-refurbished-camera-lens/item")).doesNotThrowAnyException();
   assertThatCode(()->policy.validate("amazon","https://www.amazon.in/dp/ASIN")).doesNotThrowAnyException();
+  assertThatCode(()->policy.validate("sigmaindia","https://sigmaindia.in/product/18-50mm-f2-8-dc-dn-c/")).doesNotThrowAnyException();
+  assertThatCode(()->policy.validate("reliance","https://www.reliancedigital.in/product/sony-sel24105g-24-105-mm-standard-lens")).doesNotThrowAnyException();
  }
 }

@@ -3,9 +3,38 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
-from refresh_sources import parse_amazon,parse_product,paise,refresh,base,validate_destination,RETAILERS,parse_rating,amazon_rating,save_snapshot,write_summary,SOURCES
+from refresh_sources import parse_amazon,parse_product,paise,refresh,base,validate_destination,RETAILERS,parse_rating,amazon_rating,save_snapshot,write_summary,SOURCES,parse_sigma_india,parse_reliance
 AT='2026-10-31T10:00:00Z'
 class SourceContractTests(unittest.TestCase):
+ def fixture(self,name):return (Path(__file__).parent/'fixtures'/name).read_text()
+ def test_sigma_family_is_one_unmatched_offer_not_four_mount_quotes(self):
+  rows=parse_sigma_india(self.fixture('sigma-family.html'),AT)
+  self.assertEqual(len(rows),1)
+  row=rows[0];validate_destination(row)
+  self.assertEqual(row['pricePaise'],5280000)
+  self.assertIsNone(row['mount']);self.assertIsNone(row['modelCode'])
+  self.assertEqual(row['availability'],'UNKNOWN')
+  self.assertEqual(row['coverage'],'APS_C')
+  self.assertIn('mount unconfirmed',row['conditionLabel'])
+  self.assertIn('Canon RF Mount',row['conditionNotes'])
+ def test_sigma_requires_exact_product_and_purchase_control(self):
+  html=self.fixture('sigma-family.html')
+  for bad in [html.replace('18-50mm','16-28mm'),html.replace('value="573"','value="999"'),html.replace('type="submit"','disabled type="submit"')]:
+   with self.subTest(),self.assertRaises(ValueError):parse_sigma_india(bad,AT)
+ def test_sigma_does_not_fall_back_to_crossed_out_mrp(self):
+  from bs4 import BeautifulSoup
+  soup=BeautifulSoup(self.fixture('sigma-family.html'),'html.parser');soup.select_one('ins').decompose()
+  with self.assertRaises(ValueError):parse_sigma_india(str(soup),AT)
+ def test_reliance_does_not_claim_location_independent_stock(self):
+  row=parse_reliance(self.fixture('reliance-lens.html'),AT)[0];validate_destination(row)
+  self.assertEqual((row['modelCode'],row['mount'],row['pricePaise']),('SEL24105G','Sony E',10749000))
+  self.assertEqual(row['availability'],'UNKNOWN')
+  self.assertNotIn('productRating',row)
+  self.assertIn('pincode',row['conditionNotes'])
+ def test_reliance_rejects_wrong_currency_or_product(self):
+  html=self.fixture('reliance-lens.html')
+  for bad in [html.replace('INR','USD'),html.replace('SEL24105G','CAMERA-KIT')]:
+   with self.subTest(),self.assertRaises(ValueError):parse_reliance(bad,AT)
  def test_brand_is_manufacturer_not_camera_mount(self):
   row=base("amazon","Amazon India","one","Sigma 35mm f/1.4 DG HSM Art [for Sony]",3450000,"https://www.amazon.in/dp/TEST",AT)
   self.assertEqual(row["brand"],"Sigma")

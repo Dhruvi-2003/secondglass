@@ -1,4 +1,9 @@
 export const staticPages = typeof __STATIC_PAGES__ !== "undefined" && __STATIC_PAGES__;
+export const lensMounts = [
+  "Nikon Z", "Nikon F", "Sony E", "Sony A",
+  "Canon EF", "Canon EF-S", "Canon RF", "Canon RF-S",
+  "Fujifilm X", "Fujifilm GFX", "L-Mount", "Micro Four Thirds",
+];
 export const money = (n) =>
   n == null
     ? "Not disclosed"
@@ -112,8 +117,8 @@ export const defaults = {
   disclosedClearOnly: false,
   sort: "price",
 };
-export function initialFilters() {
-  const p = new URLSearchParams(location.search);
+export function initialFilters(search = location.search) {
+  const p = new URLSearchParams(search);
   return {
     ...defaults,
     q: (p.get("q") || "").slice(0, 100),
@@ -131,7 +136,7 @@ export function initialFilters() {
     sort: ["price", "price-desc", "recent"].includes(p.get("sort"))
       ? p.get("sort")
       : "price",
-    mount: ["Sony E", "Canon EF-S", "Canon RF", "Nikon Z", "Fujifilm X"].includes(p.get("mount")) ? p.get("mount") : "",
+    mount: lensMounts.includes(p.get("mount")) ? p.get("mount") : "",
     retailer: (p.get("retailer") || "").slice(0, 80),
     listingType: ["NEW", "USED", "REFURBISHED"].includes(p.get("listingType"))
       ? p.get("listingType")

@@ -23,8 +23,10 @@ import {
   event,
   trackingAllowed,
   staticPages,
+  lensMounts,
 } from "./lib";
 import "./style.css";
+import { officialSites } from "./official-sites";
 
 function App() {
   const [filters, setFilters] = useState(initialFilters),
@@ -631,7 +633,14 @@ function App() {
                 </div>
                 <small>Listed price. Shipping shown separately.</small>
               </fieldset>
-              <fieldset><legend>Lens mount</legend><select aria-label="Lens mount" value={filters.mount} onChange={e => change({mount:e.target.value})}><option value="">All mounts</option><option value="Sony E">Sony E</option><option value="Canon EF-S">Canon EF-S</option><option value="Canon RF">Canon RF</option><option value="Nikon Z">Nikon Z</option><option value="Fujifilm X">Fujifilm X</option></select><small>Different mounts are not interchangeable.</small></fieldset>
+              <fieldset>
+                <legend>Lens mount</legend>
+                <select aria-label="Lens mount" value={filters.mount} onChange={e => change({mount:e.target.value})}>
+                  <option value="">All mounts</option>
+                  {lensMounts.map(mount => <option key={mount} value={mount}>{mount === "Fujifilm GFX" ? "Fujifilm GFX (G mount)" : mount === "L-Mount" ? "L-mount" : mount}</option>)}
+                </select>
+                <small>Different mounts are not interchangeable. Some mounts may have no verified listings yet.</small>
+              </fieldset>
               <fieldset>
                 <legend>Lens brand</legend>
                 {["", "Sony", "Sigma", "Tamron", "Canon", "Nikon", "Fujifilm"].map((b) => (
@@ -1072,7 +1081,7 @@ function App() {
       )}
       {modal === "sources" && (
         <Modal title="Stores & coverage" onClose={close}>
-          <p>Retail product pages and platform checkout only. We exclude person-to-person marketplaces, rental-only sites and enquiry-only catalogues. Inclusion is not a guarantee of seller quality or brand authorization.</p>
+          <p>Comparison offers link to retail product pages with checkout. Official information sites and coverage gaps are listed separately below. Inclusion is not a guarantee of seller quality or brand authorization.</p>
           <p>{sourceInfo?.message || "Loading source coverage…"}</p>
           <div className="source-list">
             {sourceInfo?.sources?.map((s) => (
@@ -1096,6 +1105,16 @@ function App() {
                     ? `Last successful read: ${new Date(s.lastSuccessAt).toLocaleString()}`
                     : "No successful read yet"}
                 </small>
+              </article>
+            ))}
+          </div>
+          <h3>Official sites & coverage gaps</h3>
+          <p>Reference links reviewed on 1 November 2026. These are not hourly price sources or purchase offers.</p>
+          <div className="source-list">
+            {officialSites.map((site) => (
+              <article key={site.name}>
+                <div><a href={site.url} target="_blank" rel="noopener noreferrer"><strong>{site.name}</strong> <Icon name="external" /></a></div>
+                <p>{site.label}</p><small>{site.note}</small>
               </article>
             ))}
           </div>

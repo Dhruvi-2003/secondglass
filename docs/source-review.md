@@ -1,5 +1,14 @@
 # Retail source review — 31 October 2026
 
+## Update — 1 November 2026
+
+- **Sigma India / Shetala added:** Sigma's [global distributor directory](https://www.sigma-global.com/en/world-network/) identifies Shetala and sigmaindia.in. The [18–50mm product page](https://sigmaindia.in/product/18-50mm-f2-8-dc-dn-c/) has an INR selling price and direct Add to cart form. It does not bind that price to a selected mount. Import exactly one family listing with null mount/model code, `UNKNOWN` mount-specific stock, and a prominent mount-unconfirmed label. It cannot qualify for exact-variant matching or a mount-filter result. Do not fabricate four individually priced offers.
+- **Reliance Digital added:** [Sony SEL24105G 24–105mm](https://www.reliancedigital.in/product/sony-sel24105g-24-105-mm-standard-lens) rendered Add to Cart and Buy Now with the site's displayed Mumbai pincode. Read the exact product's INR offer, but keep availability `UNKNOWN`: JSON-LD InStock is not reliable delivery evidence. The inspected SEL2470Z and earlier SEL50F18F pages are not added; rendered online checkout was unavailable in the checks. No pincode was collected from a visitor or submitted by this adapter.
+- **Nikon India / Tamron India:** official catalogue/distributor reference links added to a separate section in Stores & coverage. These are manually reviewed references, not hourly price sources, checkout offers, or comparisons against dealer street prices.
+- **Vijay Sales:** official website linked with coverage pending. Searches still did not establish a standalone interchangeable-lens checkout listing; camera kits and phone accessories remain excluded. This does not claim the retailer never stocks lenses.
+
+The historical decisions below describe the earlier review; the update above supersedes Sigma and Reliance integration status.
+
 The user's candidate list is a discovery shortlist, not evidence of current stock, warranty or brand authorization. Admission requires an individual lens product page and a purchase path through business/platform checkout. No seller outreach or purchase was performed.
 
 | Candidate | Decision and evidence |

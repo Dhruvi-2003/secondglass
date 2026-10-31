@@ -3,9 +3,20 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {prepareSnapshot} from '../prepare-pages.mjs';
 import {createSnapshotApi} from '../src/pages-api.mjs';
+import {initialFilters} from '../src/lib.js';
 // Recorded fixture keeps model/price assertions deterministic as the live catalogue changes.
 const source=JSON.parse(await readFile(new URL('./fixtures/catalogue-2026-10-31.json',import.meta.url)));
 const snapshot=prepareSnapshot(source),api=createSnapshotApi(snapshot,()=>Date.parse(source.generatedAt));
+test('shared mount filters survive reload and never broaden to a different mount',()=>{
+ for(const mount of ['Nikon Z','Nikon F','Sony E','Sony A','Canon EF','Canon EF-S','Canon RF','Canon RF-S','Fujifilm X','Fujifilm GFX','L-Mount','Micro Four Thirds']) {
+  const query='?mount='+encodeURIComponent(mount);
+  assert.equal(initialFilters(query).mount,mount);
+  const result=api('/api/catalog'+query+'&includeSoldOut=true&size=48');
+  assert.ok(result.offers.every(o=>o.mount===mount));
+  assert.equal(result.total,snapshot.offers.filter(o=>o.mount===mount).length);
+ }
+ assert.equal(initialFilters('?mount=unknown').mount,'');
+});
 test('current catalogue can be published without assuming fixed prices or counts',async()=>{
  const current=prepareSnapshot(JSON.parse(await readFile(new URL('../../catalogue/live.json',import.meta.url))));
  assert.ok(current.offers.length>0);
