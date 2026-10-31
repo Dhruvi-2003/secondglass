@@ -1,3 +1,5 @@
+> **Terms review — 1 November 2026:** See [the manual source review](source-terms-review.md) for restrictions and gaps found across all 13 sources. Collectors remain enabled at the owner’s request. Public availability is not a permission claim.
+
 # Real source coverage
 
 The default snapshot contains **32 actual public-page offers from twelve sources**, collected on 31 October 2026. This pilot covers selected Sony, Canon, Nikon, Fujifilm, Sigma and Tamron lenses, not exhaustive coverage of all Indian websites or all products on each platform.
@@ -23,7 +25,7 @@ Counts reflect the committed snapshot and change after refresh. The **Stores & c
 
 Install `tools/requirements.txt` and run `python tools/refresh_sources.py`. It reads fixed reviewed URLs, with timeouts, response-size bounds and small request delays. It does not use credentials, scraping proxies, identity rotation or challenge bypass. Missing expected data, foreign currency or access failure fails that source instead of creating a guessed price.
 
-All configured pages for a source must parse before replacing its snapshot. A failed source retains previous rows at their original observation times; check time and successful observation time are separate. The collector atomically replaces `catalogue/live.json`; Java checks the local file every minute. Reload the browser to update coverage information. Network collection is **on demand**, not a recurring crawler. The 24-hour stale label is not a freshness guarantee.
+All configured pages for a source must parse before replacing its snapshot. A failed source retains previous rows at their original observation times; check time and successful observation time are separate. The collector atomically replaces `catalogue/live.json`; Java checks the local file every minute. Reload the browser to update coverage information. Network collection runs on demand or through the hourly GitHub Actions job, using the configured fixed source URLs. The 24-hour stale label is not a freshness guarantee.
 
 Successful source snapshots hide disappeared listings without declaring them sold or deleting history. Changes to the configured source scope need review because reducing the scope can hide older offers. Source errors remain visible in the coverage panel; raw diagnostics stay in the local snapshot.
 

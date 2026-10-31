@@ -7,6 +7,8 @@ const out = pages ? "../docs-site" : "../backend/src/main/resources/static";
 await mkdir(out, { recursive: true });
 await copyFile("index.html", `${out}/index.html`);
 await cp("assets/brands", `${out}/assets/brands`, {recursive:true});
+await copyFile('how-it-works.css',`${out}/how-it-works.css`);
+await writeFile(`${out}/how-it-works.html`,(await readFile('how-it-works.html','utf8')).replace('./how-it-works.css',`./how-it-works.css?v=${version(await readFile('how-it-works.css'))}`));
 let catalogueVersion = '';
 if (pages) {
   const {prepareSnapshot} = await import('./prepare-pages.mjs');

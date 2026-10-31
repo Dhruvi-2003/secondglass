@@ -29,6 +29,7 @@ import {
   trackingAllowed,
   staticPages,
   lensMounts,
+  lastChecked,
 } from "./lib";
 import "./style.css";
 import { officialSites } from "./official-sites";
@@ -336,7 +337,7 @@ function App() {
             Explore lenses
           </button>
           <button onClick={() => setModal("sources")}>Stores & coverage</button>
-          <button onClick={() => setModal("about")}>How it works</button>
+          <a href="./how-it-works.html">How it works / limits</a>
           <button className="shortlist-nav" onClick={() => switchView("saved")}>
             <Icon name="bookmark" />
             Shortlist <span>{saved.length}</span>
@@ -918,6 +919,7 @@ function App() {
         <p>A second life for good glass.</p>
         <div>
           <button onClick={() => setModal("about")}>About the pilot</button>
+          <a href="./how-it-works.html">How it works / limits</a>
           <button onClick={() => setModal("privacy")}>Privacy & usage</button>
           <span>Made for the curious.</span>
         </div>
@@ -1004,6 +1006,13 @@ function App() {
                   </span>
                 </div>
               </div>
+              <div className="listing-last-checked">
+                <Icon name="clock"/>
+                <div><strong>{detail.demo ? 'Sample timestamp' : 'Last checked'}</strong>
+                  <time dateTime={detail.observed_at}>{lastChecked(detail.observed_at)}</time>
+                  <small>{detail.demo ? 'Illustrative demo observation.' : 'Last successful source read; confirm current price and stock with the seller.'}</small>
+                </div>
+              </div>
               {detail.demo && (
                 <p className="notice">
                   Sample listing from a fictional dealer. Price, condition and
@@ -1062,8 +1071,6 @@ function App() {
                 <dd>
                   {detail.availability.replaceAll("_", " ").toLowerCase()}
                 </dd>
-                <dt>Observed</dt>
-                <dd>{new Date(detail.observed_at).toLocaleString("en-IN")}</dd>
               </dl>
               <h3>Price observations</h3>
               {history && <PriceHistory history={history} />}
@@ -1171,6 +1178,8 @@ function App() {
             coupons; the actual seller and checkout total may change. 
             We have not independently inspected the items.
           </p>
+          <p>Independent portfolio project. Retailer names, logos and links identify sources and do not imply affiliation, endorsement or seller approval. Confirm current prices and terms with the seller.</p>
+          <p><a className="method-link" href="./how-it-works.html">Read our data method, freshness and limits</a></p>
           <button className="primary" onClick={close}>
             Explore the pilot <Icon name="arrow" />
           </button>

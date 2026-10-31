@@ -2425,3 +2425,13 @@ dd small {
   .store-offer.without-terms { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-areas: "seller price" "actions actions"; }
   .group-alerts li { font-size: 11px; }
 }
+
+.site-header nav > a { font-size: 12px; padding: 10px 0; color: inherit; text-decoration: none; }
+footer > div > a, .method-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.listing-last-checked { display: flex; gap: 10px; padding: 14px; margin: 16px 0; border: 1px solid #dce4ec; border-radius: 6px; background: #f6f8fb; }
+.listing-last-checked > svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; color: #536d87; }
+.listing-last-checked strong, .listing-last-checked time, .listing-last-checked small { display: block; line-height: 1.6; }
+.listing-last-checked strong { font-size: 12px; }
+.listing-last-checked time { font-size: 15px; font-weight: 600; }
+.listing-last-checked small { font-size: 11px; color: #657383; }
+@media (max-width: 720px) { .site-header nav > a { display: none; } }

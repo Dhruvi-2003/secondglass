@@ -124,3 +124,10 @@ npm run build:pages
 ```
 
 The output is `docs-site/`; serve it over HTTP to preview. Relative asset links also work under `/secondglass/`. You can still refresh `catalogue/live.json` locally with the bounded collector and commit the result. Deployment never relabels old observations as fresh. Frontend behavior tests use a recorded fixture, while a separate validation test checks the changing live catalogue without assuming fixed prices or counts. The public static site does not collect app usage/feedback or invoke AI. GitHub may keep hosting access logs. Historical database records are not exported; the Pages detail view shows only the published observation.
+
+
+### Data method, source access and dates
+
+The published [How it works / limits page](https://dhruvi-2003.github.io/secondglass/how-it-works.html) explains automated extraction, manual source/model review and the static pilot's scope. Listing Details now shows **Last checked**, with the last successful source-read date and time in IST; deploying never advances this timestamp.
+
+See [the manual source terms review](docs/source-terms-review.md) for findings across all 13 sources, dated 1 November 2026. Restrictions were identified at several sources, and RK Deals terms could not be verified. All collectors remain enabled at the owner’s explicit request. The review is advisory, not an automated access gate or evidence of written permission.

@@ -88,3 +88,15 @@ test('source evidence survives snapshot, offer detail and comparison without cha
  assert.deepEqual(request('/api/compare?ids='+prepared.offers.map(o=>o.id)).offers[0].listing_details,details);
  assert.equal(prepared.offers[1].listing_details,null);
 });
+
+test('last checked date uses the source timestamp and explicit India timezone',async()=>{
+ const {lastChecked}=await import('../src/lib.js');
+ const formatted=lastChecked('2026-10-31T20:00:00Z');
+ assert.match(formatted,/1 Nov 2026/);
+ assert.match(formatted,/01:30/);
+ assert.ok(formatted.endsWith(' IST'));
+ assert.equal(lastChecked('invalid'),'Date unavailable');
+ const older=api('/api/catalog?size=48').offers[0];
+ const later=createSnapshotApi(snapshot,()=>Date.parse(source.generatedAt)+2*86400000);
+ assert.equal(lastChecked(later('/api/offers/'+older.id).observed_at),lastChecked(older.observed_at));
+});

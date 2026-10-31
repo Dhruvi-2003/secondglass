@@ -38,6 +38,12 @@ export const ago = (value) => {
       ? `${hours}h ago`
       : `${Math.floor(hours / 24)}d ago`;
 };
+export const lastChecked = value => {
+  const date=new Date(value);
+  return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat('en-IN',{
+    day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata',
+  }).format(date)+' IST' : 'Date unavailable';
+};
 export const opticalCondition = (o, field) => o.listing_type === "NEW" ? "New lens" : optical(o[field]);
 export function warrantyLabel(o) {
   const type=o.listing_details?.warrantyType;
