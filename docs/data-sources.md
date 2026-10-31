@@ -101,3 +101,9 @@ Each group reports unique retailers, unique retailers listing stock, the lowest 
 The browser expands store rows with individual condition, stock, review score, warranty, returns, shipping, timestamps and direct seller links. Saving, selecting for comparison, shared comparison links and detail/history views continue to use individual offer IDs. Unmatched single offers retain their existing cards.
 
 For this pilot the Spring endpoint groups filtered rows in memory; the Pages version groups its downloaded snapshot. A substantially larger backend catalogue should paginate configuration IDs in the database and fetch the selected groups' offers, preserving the same filter/group/sort contract.
+
+## Card information priority
+
+Result cards and expanded store rows show condition, listed price, stock, available review scores and up to two useful known terms. Unavailable ratings, warranty, returns, optical-condition and shipping placeholders remain in the listing detail panel. Manufacturer model codes are shown when known; an unconfirmed mount remains visible because it affects compatibility. Known shipping charges stay next to the price.
+
+Adverse disclosures always take priority and are not limited by the two-term cap: optical issues, conflicting warranty/return claims, no warranty, replacement-only policies and restricted/no returns remain visible. Grouped cards flag the number of offers with conflicting terms or reported optical issues before expansion. Hiding a missing field never changes its underlying unknown value or makes it a positive claim. A single-condition group shows that condition once rather than repeating the same starting price.

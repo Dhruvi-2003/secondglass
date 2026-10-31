@@ -1,16 +1,15 @@
 import React, { useId, useEffect, useRef, useState } from "react";
 import {brandLogo} from "./brands";
+import {offerHighlights, groupAlerts} from "./offer-highlights";
 import {
   money,
   disclosed,
   coverage,
-  optical,
   opticalCondition,
   warrantyLabel,
   returnsLabel,
   yesno,
   ago,
-  quality,
 } from "./lib";
 
 export function Icon({ name, ...props }) {
@@ -113,6 +112,10 @@ export function ListingEvidence({offer}) {
     <ul>{entries.map((e,i)=><li key={i}><strong>{e.field === "returns" ? "Returns" : e.field[0].toUpperCase()+e.field.slice(1)}</strong> · {e.scope === "STORE_POLICY" ? "Store policy" : e.scope === "PRODUCT_FAMILY" ? "Product family" : "Product listing"}<p>{e.text}</p><a href={e.sourceUrl} target="_blank" rel="noopener noreferrer">Read source</a></li>)}</ul>
   </details>;
 }
+function OfferHighlights({offer}) {
+  const highlights=offerHighlights(offer);
+  return highlights.length ? <ul className="offer-highlights">{highlights.map(h=><li key={h.key} className={h.tone}>{h.tone==='alert' && <Icon name="info"/>}{h.label}</li>)}</ul> : null;
+}
 export function OfferCard({
   offer: o,
   saved,
@@ -122,15 +125,11 @@ export function OfferCard({
   onCompare,
   onDetails,
 }) {
-  const state = quality(o);
   return (
     <article className={`offer-card text-offer ${selected ? "selected-card" : ""}`}>
       <div className="offer-heading">
         <span className="condition-heading">
           {o.condition_label}
-          <span>
-            {o.listing_type === "NEW" ? "Retail listing" : "Seller description"}
-          </span>
         </span>
         <button
           className={`icon-button save-button ${saved ? "saved" : ""}`}
@@ -144,26 +143,14 @@ export function OfferCard({
       <div className="offer-body">
         <div className="brand-row">
           <BrandMark brand={o.brand} />
-          <span>{coverage(o.coverage)}</span>
+          {o.coverage && <span>{coverage(o.coverage)}</span>}
         </div>
         <h3>
           <button onClick={onDetails}>{o.model}</button>
         </h3>
         <p className="lens-meta">
-          {o.mount || "Mount undisclosed"} <span>·</span>{" "}
-          {o.model_code || "Exact variant unconfirmed"}
+          {o.mount || "Mount unconfirmed"}{o.model_code && <> <span>·</span> {o.model_code}</>}
         </p>
-        <ProductRating offer={o} />
-        <div className={`optics-pill ${state.tone}`}>
-          <Icon name={state.tone === "clear" ? "check" : "info"} />
-          {state.label}
-        </div>
-        <div className="offer-terms">
-          <span>
-            {warrantyLabel(o)}
-          </span>
-          <span>{returnsLabel(o)}</span>
-        </div>
         <div className="price-row">
           <strong>{money(o.price_paise)}</strong>
           <span
@@ -177,13 +164,9 @@ export function OfferCard({
                 : o.availability === "BACKORDER" ? "Backorder" : "Stock unknown"}
           </span>
         </div>
-        <p className="shipping">
-          {o.shipping_paise == null
-            ? "Shipping not disclosed"
-            : o.shipping_paise === 0
-              ? "Free shipping advertised"
-              : `+ ${money(o.shipping_paise)} shipping`}
-        </p>
+        {o.shipping_paise>0 && <p className="known-shipping">+ {money(o.shipping_paise)} shipping</p>}
+        <OfferHighlights offer={o}/>
+        {o.product_rating != null && o.product_rating_count > 0 && <ProductRating offer={o} />}
         <div className="seller-row">
           <span>{o.seller}</span>
           <span
@@ -240,6 +223,7 @@ export function LensGroupCard({group, saved, selected, onSave, onCompare, onDeta
     return rows.length ? {kind,price:Math.min(...rows.map(o=>o.price_paise))} : null;
   }).filter(Boolean);
   const conditionName={NEW:'New',USED:'Used',REFURBISHED:'Refurbished'};
+  const alerts=groupAlerts(offers);
   return <article className={`offer-card lens-group ${offers.some(o=>selected.includes(o.id)) ? 'selected-card' : ''}`}>
     <div className="lens-group-head">
       <div>
@@ -254,22 +238,23 @@ export function LensGroupCard({group, saved, selected, onSave, onCompare, onDeta
         <small>{group.inStockStoreCount ? `${group.inStockStoreCount} ${group.inStockStoreCount===1 ? 'store lists' : 'stores list'} in stock` : group.soldOut ? 'All shown offers sold out' : 'Stock needs confirmation'}</small>
       </div>
     </div>
-    <div className="condition-prices">{conditionPrices.map(c=><span key={c.kind}>{conditionName[c.kind]} from <strong>{money(c.price)}</strong></span>)}</div>
-    <p className="group-note">Same confirmed model and mount. Condition and store terms differ. Prices exclude undisclosed shipping.</p>
+    <div className="condition-prices">{conditionPrices.map(c=><span key={c.kind}>{conditionName[c.kind]}{conditionPrices.length>1 && <> from <strong>{money(c.price)}</strong></>}</span>)}</div>
+    {alerts.length>0 && <ul className="group-alerts">{alerts.map(a=><li key={a.key}><Icon name="info"/>{a.label}</li>)}</ul>}
+    <p className="group-note">Listed prices; delivery costs may vary.</p>
     <button className="group-expand" aria-expanded={expanded} aria-controls={panelId} onClick={()=>setExpanded(!expanded)}>
       {expanded ? 'Hide store offers' : `Compare ${group.storeCount} ${group.storeCount===1 ? 'store' : 'stores'}`}<Icon name="chevron"/>
     </button>
     <div id={panelId} hidden={!expanded} className="store-offers">
-      {offers.map(o=><div className={`store-offer ${selected.includes(o.id) ? 'store-offer-selected' : ''}`} key={o.id}>
+      {offers.map(o=><div className={`store-offer ${!offerHighlights(o).length && !(o.product_rating!=null && o.product_rating_count>0) ? 'without-terms' : ''} ${selected.includes(o.id) ? 'store-offer-selected' : ''}`} key={o.id}>
         <div className="store-offer-seller"><strong>{o.seller}</strong><span>{o.condition_label}</span>
           <small className={o.stale ? 'stale' : ''} title={new Date(o.observed_at).toLocaleString()}>{ago(o.observed_at)}{o.stale ? ' · stale' : ''}</small>
         </div>
-        <div className="store-offer-terms"><span>{warrantyLabel(o)}</span><span>{returnsLabel(o)}</span>
-          {o.product_rating != null && <ProductRating offer={o}/>}
+        <div className="store-offer-terms"><OfferHighlights offer={o}/>
+          {o.product_rating != null && o.product_rating_count>0 && <ProductRating offer={o}/>}
         </div>
         <div className="store-offer-price"><strong>{money(o.price_paise)}</strong>
           <span>{o.availability==='IN_STOCK' ? 'In stock' : o.availability==='OUT_OF_STOCK' ? 'Sold out' : o.availability==='BACKORDER' ? 'Backorder' : 'Stock unknown'}</span>
-          <small>{o.shipping_paise==null ? 'Shipping unconfirmed' : o.shipping_paise===0 ? 'Free shipping advertised' : `+ ${money(o.shipping_paise)} shipping`}</small>
+          {o.shipping_paise>0 && <small>+ {money(o.shipping_paise)} shipping</small>}
         </div>
         <div className="store-offer-actions">
           <div><button className={`icon-button ${saved.includes(o.id) ? 'saved' : ''}`} onClick={()=>onSave(o.id)} aria-label={`${saved.includes(o.id) ? 'Unsave' : 'Save'} ${o.model} from ${o.seller}`} aria-pressed={saved.includes(o.id)}><Icon name="bookmark"/></button>
