@@ -1,0 +1,277 @@
+{
+  "info": {
+    "name": "SecondGlass local pilot checks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run against an isolated sample catalogue. Sends one anonymous test feedback count. Uses no external service or secret."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8086"
+    }
+  ],
+  "item": [
+    {
+      "name": "Database health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Service is up',()=>pm.expect(pm.response.json().status).to.eql('UP'));",
+              "pm.test('Explicit sample mode',()=>pm.expect(pm.response.json().demo).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sample catalogue and listing identities",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/catalog"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const d=pm.response.json();",
+              "pm.test('Ten sample listings',()=>pm.expect(d.total).to.eql(10));",
+              "for(const key of ['fe50-a','fe50-b','unknown-c','e50-a']) { const o=d.offers.find(x=>x.external_key===key); pm.expect(o).to.exist; pm.collectionVariables.set(key,o.id); }",
+              "pm.test('Missing disclosures survive serialization',()=>pm.expect(d.offers.find(x=>x.external_key==='unknown-c').model_code).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Same variant different physical copies",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/compare?ids={{fe50-a}},{{fe50-b}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const d=pm.response.json();",
+              "pm.test('Same disclosed variant',()=>pm.expect(d.modelMatch).to.eql('MATCHING_VARIANT'));",
+              "pm.test('Fungus disclosures remain different',()=>pm.expect(d.offers[0].fungus).not.to.eql(d.offers[1].fungus));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Different 50mm variants",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/compare?ids={{fe50-a}},{{e50-a}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Different variants',()=>pm.expect(pm.response.json().modelMatch).to.eql('DIFFERENT_VARIANTS'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unknown model is not matched",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/compare?ids={{fe50-a}},{{unknown-c}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Insufficient information',()=>pm.expect(pm.response.json().modelMatch).to.eql('INSUFFICIENT_INFORMATION'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Explicit clear optics filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/catalog?disclosedClearOnly=true"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Unknown and defect rows excluded',()=>{for(const o of pm.response.json().offers)for(const k of ['fungus','scratches','haze'])pm.expect(o[k]).to.eql('ABSENT');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hyphenated focal search",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/catalog?q=18-50mm"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Both Sigma copies found',()=>pm.expect(pm.response.json().total).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Physical item price history",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/offers/{{fe50-a}}/history"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Four observations with explicit demo flag',()=>{const d=pm.response.json();pm.expect(d.points).to.have.length(4);pm.expect(d.demo).to.eql(true);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "No-key filter interpretation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/search/interpret",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"text\": \"Full-frame prime under 25k\", \"useAi\": false}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Basic mode budget preserved',()=>{const d=pm.response.json();pm.expect(d.mode).to.eql('basic');pm.expect(d.filters.maxPrice).to.eql(25000);pm.expect(d.filters.coverage).to.eql('FULL_FRAME');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid range rejected",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/catalog?maxPrice=-1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owner endpoint is private",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/admin/summary"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Anonymous feedback only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/events",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"event\": \"feedback_helpful\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Feedback recorded',()=>pm.expect(pm.response.json().accepted).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

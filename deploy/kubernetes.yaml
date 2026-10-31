@@ -1,0 +1,63 @@
+# Example only. Build/load secondglass:0.1.0 and create Secret secondglass-config first.
+# Secret keys: DATABASE_URL (jdbc:postgresql://...), DATABASE_USER, DATABASE_PASSWORD.
+# Optional: ADMIN_TOKEN, AI_API_KEY, AI_MODEL. Do not commit real secret values.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secondglass
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: secondglass}
+  template:
+    metadata:
+      labels: {app: secondglass}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: app
+          image: secondglass:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{containerPort: 8086}]
+          envFrom:
+            - secretRef: {name: secondglass-config}
+          env:
+            - {name: BIND_ADDRESS, value: "0.0.0.0"}
+            - {name: PORT, value: "8086"}
+            - {name: DEMO_MODE, value: "false"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: "100m", memory: "256Mi"}
+            limits: {cpu: "1", memory: "768Mi"}
+          startupProbe:
+            httpGet: {path: /api/health, port: 8086}
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet: {path: /api/health, port: 8086}
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: {port: 8086}
+            periodSeconds: 20
+          volumeMounts:
+            - {name: temporary, mountPath: /tmp}
+      volumes:
+        - name: temporary
+          emptyDir: {sizeLimit: "128Mi"}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: secondglass
+spec:
+  selector: {app: secondglass}
+  ports: [{port: 80, targetPort: 8086}]
+  type: ClusterIP

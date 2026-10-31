@@ -1,0 +1,11 @@
+**/node_modules
+**/target
+**/data
+**/static
+.env
+.git
+reports
+*.jar
+
+.venv
+**/__pycache__

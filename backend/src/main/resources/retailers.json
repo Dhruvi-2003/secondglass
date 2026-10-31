@@ -1,0 +1,50 @@
+{
+  "amazon": {
+    "host": "www.amazon.in",
+    "type": "Marketplace checkout"
+  },
+  "flipkart": {
+    "host": "www.flipkart.com",
+    "type": "Marketplace checkout"
+  },
+  "srishti": {
+    "host": "www.srishtidigilife.co.in",
+    "type": "Retailer"
+  },
+  "pooja": {
+    "host": "poojaelectronics.in",
+    "type": "Retailer"
+  },
+  "rk": {
+    "host": "www.rkdeals.co.in",
+    "type": "Used-gear dealer"
+  },
+  "cameraclub": {
+    "host": "cameraclub.in",
+    "type": "Retailer"
+  },
+  "sony": {
+    "host": "shopatsc.com",
+    "type": "Brand storefront"
+  },
+  "cashify": {
+    "host": "www.cashify.in",
+    "type": "Refurbisher"
+  },
+  "dacby": {
+    "host": "dacby.com",
+    "type": "Pre-owned retailer"
+  },
+  "fotocentre": {
+    "host": "fotocentreindia.com",
+    "type": "Retailer"
+  },
+  "justcanon": {
+    "host": "www.justcanon.in",
+    "type": "Retailer"
+  },
+  "fujifilm": {
+    "host": "fujifilmxindia.com",
+    "type": "Authorised online store"
+  }
+}
