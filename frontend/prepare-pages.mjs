@@ -3,7 +3,7 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 const normalize = v => v == null ? '?' : String(v).trim().toLowerCase().replace(/\s+/g,' ');
 export function prepareSnapshot(snapshot) {
   if (!snapshot.observations?.length || !snapshot.sources || !snapshot.generatedAt) throw new Error('Missing real snapshot');
-  const fields = ['brand','model','modelCode','mount','coverage','focalMin','focalMax','maxAperture','autofocus','stabilized','conditionLabel','conditionNotes','fungus','scratches','haze','accessories','warrantyMonths','warrantyDetails','returnDays','pricePaise','shippingPaise','availability','sourceUrl','observedAt','listingType'];
+  const fields = ['brand','model','modelCode','mount','coverage','focalMin','focalMax','maxAperture','autofocus','stabilized','conditionLabel','conditionNotes','fungus','scratches','haze','accessories','warrantyMonths','warrantyDetails','returnDays','pricePaise','shippingPaise','availability','sourceUrl','observedAt','listingType','listingDetails'];
   const sourceFields = ['id','name','url','status','checkedAt','lastSuccessAt','offers','scope','message','storeType'];
   const offers = snapshot.observations.map(r => {
     if (r.demo || new URL(r.sourceUrl).protocol !== 'https:') throw new Error('Pages requires real HTTPS seller observations');

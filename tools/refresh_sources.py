@@ -13,6 +13,7 @@ import time
 from urllib.parse import urlparse, urljoin, parse_qs
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
+from listing_details import enrich, enrich_policy, enrich_warranty_policy, POLICIES, WARRANTY_POLICIES
 
 ROOT = Path(__file__).resolve().parents[1]
 RETAILERS = json.loads((ROOT/'backend'/'src'/'main'/'resources'/'retailers.json').read_text())
@@ -116,6 +117,18 @@ def validate_destination(row):
  target=urlparse(row['sourceUrl'])
  if not source or target.scheme!='https' or target.hostname!=source['host'] or target.username or target.port not in (None,443):
   raise ValueError('Only reviewed retail checkout destinations are supported')
+ details=row.get('listingDetails')
+ if details is not None:
+  if details.get('warrantyType') not in {'UNKNOWN','MANUFACTURER','SELLER','STATED','CONFLICTING'} or details.get('returnPolicy') not in {'UNKNOWN','NO_RETURNS','REPLACEMENT_ONLY','CONDITIONAL','RESTRICTED','CANCELLATION_ONLY','CONFLICTING'} or details.get('ratingStatus') not in {'AVAILABLE','UNAVAILABLE','NO_REVIEWS'}:
+   raise ValueError('Invalid detail status')
+  entries=details.get('evidence')
+  if not isinstance(entries,list) or len(entries)>20 or len(json.dumps(details,ensure_ascii=False))>20000:raise ValueError('Invalid detail evidence size')
+  for entry in entries:
+   if entry.get('scope') not in {'PRODUCT','PRODUCT_FAMILY','STORE_POLICY'} or entry.get('field') not in {'warranty','returns','rating','accessories','autofocus','stabilized','shipping','fungus','haze','scratches'} or not 0<len(entry.get('text',''))<=650:
+    raise ValueError('Invalid detail evidence')
+   link=urlparse(entry.get('sourceUrl',''))
+   if link.scheme!='https' or link.hostname!=source['host'] or link.username or link.port not in (None,443):raise ValueError('Unapproved evidence URL')
+  if (details['ratingStatus']=='AVAILABLE') != bool(row.get('productRating')):raise ValueError('Rating status conflicts with product aggregate')
 
 def apply_cashify_terms(row,soup,product):
  descriptions=[soup.title.get_text() if soup.title else '',product.get('description','')]
@@ -147,7 +160,9 @@ def product_nodes(value):
  elif isinstance(value,dict):
   if value.get('@type')=='Product':yield value
   if '@graph' in value:yield from product_nodes(value['@graph'])
-  if 'hasVariant' in value:yield from product_nodes(value['hasVariant'])
+  if 'hasVariant' in value:
+   for child in product_nodes(value['hasVariant']):
+    yield {**child,'_parentGroup':value} if value.get('@type')=='ProductGroup' else child
 def parse_rating(aggregate):
  # Only exact 1–5 product aggregates with a disclosed positive count qualify.
  if not isinstance(aggregate,dict):return None
@@ -173,6 +188,16 @@ def amazon_rating(card):
 
 def parse_product(html,at,sid,name,url):
  soup=BeautifulSoup(html,'html.parser');rows={}
+ # Some stores repeat a nested variant as a standalone Product in another
+ # script. Preserve its explicitly linked family context in either order.
+ parents={}
+ for script in soup.select('script[type="application/ld+json"]'):
+  try: candidates=list(product_nodes(json.loads(script.get_text())))
+  except (ValueError,TypeError):continue
+  for child in candidates:
+   if child.get('_parentGroup') and child.get('sku'):
+    key=(child.get('sku'),child.get('name'))
+    parents.setdefault(key,[]).append(child['_parentGroup'])
  for script in soup.select('script[type="application/ld+json"]'):
   try: products=list(product_nodes(json.loads(script.get_text())))
   except (ValueError,TypeError):continue
@@ -227,6 +252,9 @@ def parse_product(html,at,sid,name,url):
     if rating:row['productRating']=rating
     validate_destination(row)
     if sid=='cashify':apply_cashify_terms(row,soup,product)
+    groups=parents.get((product.get('sku'),product.get('name')),[])
+    parent=product.get('_parentGroup') or (groups[0] if len(groups)==1 else None)
+    enrich(row,soup,product,offer,parent)
     rows[key]=row
  if not rows:raise ValueError('No supported INR product offers found')
  return list(rows.values())
@@ -254,6 +282,7 @@ def parse_sigma_india(html,at):
  row['mount']=None
  row['conditionLabel']='New · mount unconfirmed'
  row['conditionNotes']='Official distributor product-family listing. Displayed price is not tied to a specific mount. Listed mount options: '+', '.join(available)+'. Confirm your mount, its price and stock with the store before payment; no mount-specific availability is inferred.'
+ enrich(row,soup)
  return [row]
 
 def parse_amazon(html,at):
@@ -271,6 +300,8 @@ def parse_amazon(html,at):
   row['conditionNotes']='New marketplace listing. Displayed search-result price before conditional coupons or bank offers; seller, shipping and availability must be confirmed on the product page. Search observation is not a guaranteed checkout quote.'
   rating=amazon_rating(card)
   if rating:row['productRating']=rating
+  # Search cards do not provide trustworthy warranty/return/condition evidence.
+  enrich(row,BeautifulSoup(str(card),'html.parser'))
   rows.append(row)
  if not rows:raise ValueError('No supported Amazon prices; page may require verification or its layout changed')
  return list({r['externalKey']:r for r in rows}.values())
@@ -288,9 +319,24 @@ def refresh(previous,reader=fetch):
     gathered.extend(adapter(html,at) if adapter else parse_product(html,at,sid,name,source))
     if reader is fetch:time.sleep(1)
    if not gathered:raise ValueError('Empty source result')
+   policy_failed=False
+   if sid in POLICIES:
+    try:
+     policy_html,policy_at=reader(POLICIES[sid])
+     for row in gathered:
+      if not enrich_policy(row,policy_html,POLICIES[sid]):policy_failed=True
+    except Exception:
+     # A failed optional policy page must not suppress a successful price check.
+     policy_failed=True
+   if sid in WARRANTY_POLICIES:
+    try:
+     policy_html,policy_at=reader(WARRANTY_POLICIES[sid])
+     for row in gathered:
+      if not enrich_warranty_policy(row,policy_html,WARRANTY_POLICIES[sid]):policy_failed=True
+    except Exception:policy_failed=True
    for row in gathered:validate_destination(row)
    rows.extend(gathered)
-   statuses.append(dict(id=sid,name=name,url=url,storeType=RETAILERS[sid]['type'],status='OK',checkedAt=checked,lastSuccessAt=max(r['observedAt'] for r in gathered),offers=len(gathered),scope=scope,message='Public pages checked; selected products only.'))
+   statuses.append(dict(id=sid,name=name,url=url,storeType=RETAILERS[sid]['type'],status='OK',checkedAt=checked,lastSuccessAt=max(r['observedAt'] for r in gathered),offers=len(gathered),scope=scope,message='Public pages checked; selected products only.'+(' Some policy details could not be refreshed.' if policy_failed else '')))
   except Exception as exc:
    kept=[r for r in previous.get('observations',[]) if r['retailerId']==sid]
    rows.extend(kept)

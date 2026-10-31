@@ -25,7 +25,7 @@ export const optical = (x) =>
     ? "Present — seller disclosed"
     : x === "ABSENT"
       ? "Absent — seller reports"
-      : "Not disclosed";
+      : "Not captured";
 export const yesno = (x) => (x == null ? "Not disclosed" : x ? "Yes" : "No");
 export const ago = (value) => {
   const hours = Math.max(
@@ -38,12 +38,33 @@ export const ago = (value) => {
       ? `${hours}h ago`
       : `${Math.floor(hours / 24)}d ago`;
 };
+export const opticalCondition = (o, field) => o.listing_type === "NEW" ? "New lens" : optical(o[field]);
+export function warrantyLabel(o) {
+  const type=o.listing_details?.warrantyType;
+  if(type === "CONFLICTING") return "Warranty claims conflict";
+  if(o.warranty_months === 0) return "No warranty stated";
+  const label=type === "MANUFACTURER" ? "manufacturer warranty" : type === "SELLER" ? "seller warranty" : "warranty";
+  if(o.warranty_months != null) return `${o.warranty_months}-month ${label}`;
+  if(o.warranty_details) return type === "MANUFACTURER" ? "Manufacturer warranty · see details" : "Warranty stated · see details";
+  return "Warranty not verified";
+}
+export function returnsLabel(o) {
+  const policy=o.listing_details?.returnPolicy;
+  if(policy === "CONFLICTING") return "Return terms conflict";
+  if(policy === "REPLACEMENT_ONLY") return "Replacement only · see terms";
+  if(policy === "NO_RETURNS") return "No returns stated";
+  if(policy === "RESTRICTED") return "Restricted returns · see policy";
+  if(policy === "CONDITIONAL" && o.return_days != null) return `${o.return_days}-day conditional returns`;
+  if(o.return_days != null) return `${o.return_days}-day window · see terms`;
+  return "Return policy not verified";
+}
 export function quality(o) {
+  if(o.listing_type === "NEW") return { tone: "unknown", label: "New retail lens" };
   const statuses = [o.fungus, o.haze, o.scratches];
   return statuses.includes("PRESENT")
     ? { tone: "warn", label: "Optical issue disclosed" }
-    : statuses.includes("UNKNOWN")
-      ? { tone: "unknown", label: "Optical details missing" }
+    : statuses.some(s => !["PRESENT","ABSENT"].includes(s))
+      ? { tone: "unknown", label: "Optical condition not captured" }
       : { tone: "clear", label: "No optical issues reported" };
 }
 export async function api(url, options = {}) {

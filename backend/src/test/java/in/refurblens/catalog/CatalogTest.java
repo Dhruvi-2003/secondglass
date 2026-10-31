@@ -226,4 +226,29 @@ class CatalogTest {
         assertThat(importer.ingest("legacy-replay",List.of(parsed)).replayed()).isTrue();
     }
 
+    SourceObservation detailed(Instant at,String policy,String evidenceUrl) {
+        var data=json.convertValue(row("pooja","detail-one","SEL50F18F","Sony E",1290000,at),new com.fasterxml.jackson.core.type.TypeReference<Map<String,Object>>() {});
+        data.put("listingDetails",Map.of("warrantyType","MANUFACTURER","returnPolicy",policy,
+            "returnDetails","Opened lenses excluded; approval required.","ratingStatus","UNAVAILABLE",
+            "evidence",List.of(Map.of("field","returns","text","Opened lenses excluded.","sourceUrl",evidenceUrl,"scope","STORE_POLICY"))));
+        return json.convertValue(data,SourceObservation.class);
+    }
+    @Test void listingEvidenceSurvivesImportApiComparisonAndDelayedUpdates() throws Exception {
+        var url="https://poojaelectronics.in/refund-and-cancellation-policy/";
+        assertThat(importer.ingest("details-now",List.of(detailed(now,"RESTRICTED",url))).accepted()).isEqualTo(1);
+        http.perform(get("/api/catalog")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.offers[0].listing_details.returnPolicy").value("RESTRICTED"))
+            .andExpect(jsonPath("$.offers[0].listing_details.evidence[0].sourceUrl").value(url))
+            .andExpect(jsonPath("$.offers[0].listing_details.evidence[0].scope").value("STORE_POLICY"));
+        importer.ingest("details-old",List.of(detailed(now.minusSeconds(60),"NO_RETURNS",url)));
+        http.perform(get("/api/catalog")).andExpect(jsonPath("$.offers[0].listing_details.returnPolicy").value("RESTRICTED"));
+        importer.ingest("details-gone",List.of(row("pooja","detail-one","SEL50F18F","Sony E",1290000,now.plusSeconds(60))));
+        assertThat(db.queryForObject("SELECT listing_details FROM offer",String.class)).isNull();
+    }
+    @Test void unsupportedEvidenceDestinationsAndStatusesAreRejected() {
+        assertThat(importer.ingest("bad-evidence-host",List.of(detailed(now,"RESTRICTED","https://evil.example/policy"))).rejected()).isEqualTo(1);
+        assertThat(importer.ingest("bad-evidence-status",List.of(detailed(now,"GUARANTEED","https://poojaelectronics.in/policy"))).rejected()).isEqualTo(1);
+        assertThat(count("offer")).isZero();
+    }
+
 }

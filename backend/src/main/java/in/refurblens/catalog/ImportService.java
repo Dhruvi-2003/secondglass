@@ -65,6 +65,26 @@ public class ImportService {
             var rating=r.productRating();
             if(rating.value()==null || !Double.isFinite(rating.value()) || rating.value()<1 || rating.value()>5 || rating.count()==null || rating.count()<1 || rating.count()>100_000_000 || !Set.of("ratings","reviews").contains(Objects.toString(rating.countType(),""))) throw new IllegalArgumentException("Product rating requires a 1–5 score, positive count and ratings/reviews count type.");
         }
+        if(r.listingDetails()!=null) {
+            var d=r.listingDetails();
+            if(!Set.of("UNKNOWN","MANUFACTURER","SELLER","STATED","CONFLICTING").contains(Objects.toString(d.warrantyType(),""))
+              || !Set.of("UNKNOWN","NO_RETURNS","REPLACEMENT_ONLY","CONDITIONAL","RESTRICTED","CANCELLATION_ONLY","CONFLICTING").contains(Objects.toString(d.returnPolicy(),""))
+              || !Set.of("AVAILABLE","UNAVAILABLE","NO_REVIEWS").contains(Objects.toString(d.ratingStatus(),""))) throw new IllegalArgumentException("Unknown listing detail status.");
+            optional(d.returnDetails(),1500,"Return policy details");
+            if(d.evidence()==null || d.evidence().size()>20) throw new IllegalArgumentException("Listing evidence exceeds supported limits.");
+            for(var e:d.evidence()) {
+                if(e==null || !Set.of("warranty","returns","rating","accessories","autofocus","stabilized","shipping","fungus","haze","scratches").contains(Objects.toString(e.field(),""))
+                  || !Set.of("PRODUCT","PRODUCT_FAMILY","STORE_POLICY").contains(Objects.toString(e.scope(),""))) throw new IllegalArgumentException("Unknown evidence field or scope.");
+                required(e.text(),650,"Evidence text");
+                required(e.sourceUrl(),2000,"Evidence URL");
+                sellerPolicy.validate(r.retailerId(),e.sourceUrl());
+            }
+            if("NO_REVIEWS".equals(d.ratingStatus()) && r.productRating()!=null) throw new IllegalArgumentException("No-review status conflicts with a product rating.");
+            if("AVAILABLE".equals(d.ratingStatus()) != (r.productRating()!=null)) throw new IllegalArgumentException("Rating status conflicts with a product aggregate.");
+            try {
+                if(json.writeValueAsString(d).length()>20000) throw new IllegalArgumentException("Listing evidence exceeds supported storage size.");
+            } catch(JsonProcessingException e) { throw new IllegalArgumentException("Cannot serialize listing details."); }
+        }
         required(r.retailerId(),80,"Seller ID"); required(r.retailerName(),120,"Seller name"); required(r.externalKey(),120,"Listing ID");
         required(r.brand(),80,"Brand"); required(r.model(),150,"Model"); required(r.conditionLabel(),100,"Condition label"); required(r.conditionNotes(),2000,"Seller condition disclosure");
         optional(r.modelCode(),100,"Model code"); optional(r.mount(),60,"Mount"); optional(r.maxAperture(),30,"Aperture");
@@ -104,6 +124,9 @@ public class ImportService {
         }
         var rating=r.productRating();
         db.update("UPDATE offer SET product_rating=?,product_rating_count=?,product_rating_count_type=? WHERE id=? AND observed_at=?",rating==null?null:rating.value(),rating==null?null:rating.count(),rating==null?null:rating.countType(),offerId,at(r));
+        try {
+            db.update("UPDATE offer SET listing_details=? WHERE id=? AND observed_at=?",r.listingDetails()==null?null:json.writeValueAsString(r.listingDetails()),offerId,at(r));
+        } catch(JsonProcessingException e) { throw new IllegalArgumentException("Cannot serialize listing details."); }
         if(db.queryForObject("SELECT count(*) FROM observation WHERE offer_id=? AND observed_at=?",Integer.class,offerId,at(r))==0)
             db.update("INSERT INTO observation VALUES(?,?,?,?,?,?,?,?)",UUID.randomUUID().toString(),offerId,batchId,configId,r.pricePaise(),r.availability(),at(r),fingerprint(r));
     }

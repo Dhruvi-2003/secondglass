@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {prepareSnapshot} from '../prepare-pages.mjs';
 import {createSnapshotApi} from '../src/pages-api.mjs';
-import {initialFilters} from '../src/lib.js';
+import {initialFilters, warrantyLabel, returnsLabel, quality, opticalCondition} from '../src/lib.js';
 // Recorded fixture keeps model/price assertions deterministic as the live catalogue changes.
 const source=JSON.parse(await readFile(new URL('./fixtures/catalogue-2026-10-31.json',import.meta.url)));
 const snapshot=prepareSnapshot(source),api=createSnapshotApi(snapshot,()=>Date.parse(source.generatedAt));
@@ -66,4 +66,25 @@ test('history contains only the published observation and writes are unavailable
  assert.equal(h.points.length,1);assert.equal(h.points[0].observed_at,o.observed_at);
  assert.match(h.scope,/Only the published observation/);
  assert.throws(()=>api('/api/events'));assert.throws(()=>api('/api/search/interpret'));
+});
+
+test('policy labels distinguish restrictions, conflicts, replacements and missing extraction',()=>{
+ assert.equal(warrantyLabel({}), 'Warranty not verified');
+ assert.equal(warrantyLabel({warranty_months:24,listing_details:{warrantyType:'MANUFACTURER'}}),'24-month manufacturer warranty');
+ assert.equal(warrantyLabel({warranty_months:24,listing_details:{warrantyType:'CONFLICTING'}}),'Warranty claims conflict');
+ assert.equal(returnsLabel({return_days:7,listing_details:{returnPolicy:'REPLACEMENT_ONLY'}}),'Replacement only · see terms');
+ assert.equal(returnsLabel({listing_details:{returnPolicy:'CANCELLATION_ONLY'}}),'Return policy not verified');
+ assert.equal(returnsLabel({return_days:7,listing_details:{returnPolicy:'CONDITIONAL'}}),'7-day conditional returns');
+ assert.equal(quality({listing_type:'NEW',fungus:'UNKNOWN'}).label,'New retail lens');
+ assert.equal(quality({listing_type:'USED'}).tone,'unknown');
+ assert.equal(opticalCondition({listing_type:'USED',fungus:'UNKNOWN'},'fungus'),'Not captured');
+});
+test('source evidence survives snapshot, offer detail and comparison without changing legacy rows',()=>{
+ const sourceRow=source.observations[0];
+ const details={warrantyType:'MANUFACTURER',returnPolicy:'RESTRICTED',returnDetails:'Opened lenses excluded.',ratingStatus:'NO_REVIEWS',evidence:[{field:'returns',text:'Opened lenses excluded.',sourceUrl:sourceRow.sourceUrl,scope:'STORE_POLICY'}]};
+ const prepared=prepareSnapshot({...source,observations:[{...sourceRow,listingDetails:details},source.observations[1]]});
+ const request=createSnapshotApi(prepared,()=>Date.parse(source.generatedAt));
+ assert.deepEqual(request('/api/offers/'+prepared.offers[0].id).listing_details,details);
+ assert.deepEqual(request('/api/compare?ids='+prepared.offers.map(o=>o.id)).offers[0].listing_details,details);
+ assert.equal(prepared.offers[1].listing_details,null);
 });

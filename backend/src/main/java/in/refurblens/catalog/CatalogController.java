@@ -13,15 +13,16 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api")
 public class CatalogController {
+    private final com.fasterxml.jackson.databind.ObjectMapper json;
     private final JdbcTemplate db;
     private final Clock clock;
     private final ImportService importer;
     private final String adminToken;
     private final long freshHours;
     private final boolean demo;
-    public CatalogController(JdbcTemplate db,Clock clock,ImportService importer,
+    public CatalogController(JdbcTemplate db,Clock clock,ImportService importer,com.fasterxml.jackson.databind.ObjectMapper json,
             @Value("${app.admin-token}") String token,@Value("${app.fresh-hours}") long hours,@Value("${app.demo}") boolean demo) {
-        this.db=db; this.clock=clock; this.importer=importer; this.adminToken=token; this.freshHours=hours; this.demo=demo;
+        this.json=json; this.db=db; this.clock=clock; this.importer=importer; this.adminToken=token; this.freshHours=hours; this.demo=demo;
     }
     private static final String FROM=" FROM offer o JOIN retailer r ON r.id=o.retailer_id JOIN configuration c ON c.id=o.configuration_id ";
     private static final String SELECT="SELECT o.*,r.name AS seller,c.brand,c.model,c.model_code,c.mount,c.coverage,c.focal_min,c.focal_max,c.max_aperture,c.autofocus,c.stabilized,c.complete"+FROM;
@@ -65,6 +66,11 @@ public class CatalogController {
         return Map.of("offers",offers,"demo",demo,"freshHours",freshHours,"total",total,"page",page,"size",size);
     }
     private Map<String,Object> decorate(Map<String,Object> row) {
+        var raw=row.get("listing_details");
+        if(raw!=null) {
+            try { row.put("listing_details",json.readValue(raw.toString(),SourceObservation.ListingDetails.class)); }
+            catch(com.fasterxml.jackson.core.JsonProcessingException e) { throw new IllegalStateException("Stored listing details are invalid.",e); }
+        }
         Instant at=observedInstant(row.get("observed_at"));
         row.put("stale",at.isBefore(clock.instant().minus(Duration.ofHours(freshHours)))); row.put("observed_at",at.toString());
         return row;

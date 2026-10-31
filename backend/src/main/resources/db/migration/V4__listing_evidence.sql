@@ -1,0 +1,1 @@
+ALTER TABLE offer ADD COLUMN listing_details VARCHAR(20000);

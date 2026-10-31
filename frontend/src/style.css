@@ -2327,3 +2327,19 @@ dd small {
 .product-rating > span { color: #9b6c14; }
 .product-rating a { text-decoration: underline; text-underline-offset: 3px; }
 .product-rating.missing-rating { color: #78838e; font-size: 11px; }
+
+.listing-evidence { margin: 18px 0; padding: 14px; border: 1px solid var(--line, #e1e4e8); border-radius: 8px; }
+.listing-evidence summary { cursor: pointer; font-weight: 600; }
+.listing-evidence ul { padding-left: 20px; }
+.listing-evidence li { margin: 14px 0; font-size: 13px; overflow-wrap: anywhere; }
+.listing-evidence li p { margin: 5px 0; line-height: 1.6; }
+.listing-evidence a { text-decoration: underline; text-underline-offset: 3px; }
+
+.brand-row { min-height: 36px; align-items: center; }
+.brand-logo { display: block; width: 96px; height: 32px; object-fit: contain; object-position: left center; }
+.brand-logo-sony { width: 76px; }
+.brand-logo-canon { width: 84px; }
+.brand-logo-nikon { width: 32px; }
+.brand-logo-sigma { width: 90px; }
+.detail-hero .brand-logo { margin-bottom: 16px; }
+.brand-logo-fujifilm { width: 104px; height: 40px; padding: 5px 7px; background: #101214; border-radius: 3px; }

@@ -1,9 +1,13 @@
-import React, { useId, useEffect, useRef } from "react";
+import React, { useId, useEffect, useRef, useState } from "react";
+import {brandLogo} from "./brands";
 import {
   money,
   disclosed,
   coverage,
   optical,
+  opticalCondition,
+  warrantyLabel,
+  returnsLabel,
   yesno,
   ago,
   quality,
@@ -90,9 +94,24 @@ export function Modal({ title, children, onClose, wide = false }) {
   );
 }
 export function ProductRating({offer: o}) {
-  if (o.product_rating == null || !o.product_rating_count) return <p className="product-rating missing-rating">Product rating unavailable</p>;
+  if (o.product_rating == null || !o.product_rating_count) return <p className="product-rating missing-rating">{o.listing_details?.ratingStatus === "NO_REVIEWS" ? "No product reviews yet" : "Product rating unavailable"}</p>;
   const label = `${Number(o.product_rating).toFixed(1)}/5 · ${Number(o.product_rating_count).toLocaleString("en-IN")} ${o.product_rating_count_type} on ${o.seller}`;
   return <p className="product-rating"><span aria-hidden="true">★ </span>{o.source_url ? <a href={o.source_url} target="_blank" rel="noopener noreferrer" aria-label={`Product rating: ${label}`}>{label}</a> : label}</p>;
+}
+export function BrandMark({brand}) {
+  const logo=brandLogo(brand), [failed,setFailed]=useState(false);
+  return logo && !failed
+    ? <img className={`brand-logo brand-logo-${logo.key}`} src={logo.src} alt={brand} width="96" height="32" decoding="async" onError={()=>setFailed(true)} />
+    : <span>{brand}</span>;
+}
+export function ListingEvidence({offer}) {
+  const entries=offer.listing_details?.evidence || [];
+  if(!entries.length) return <p className="fine-print">Additional policy and condition details have not been captured for this listing.</p>;
+  return <details className="listing-evidence">
+    <summary>Sources for these details ({entries.length})</summary>
+    <p className="fine-print">Product-family claims may cover multiple variants. Store policies can have product exclusions. Captured {new Date(offer.observed_at).toLocaleString("en-IN")}.</p>
+    <ul>{entries.map((e,i)=><li key={i}><strong>{e.field === "returns" ? "Returns" : e.field[0].toUpperCase()+e.field.slice(1)}</strong> · {e.scope === "STORE_POLICY" ? "Store policy" : e.scope === "PRODUCT_FAMILY" ? "Product family" : "Product listing"}<p>{e.text}</p><a href={e.sourceUrl} target="_blank" rel="noopener noreferrer">Read source</a></li>)}</ul>
+  </details>;
 }
 export function OfferCard({
   offer: o,
@@ -124,7 +143,7 @@ export function OfferCard({
       </div>
       <div className="offer-body">
         <div className="brand-row">
-          <span>{o.brand}</span>
+          <BrandMark brand={o.brand} />
           <span>{coverage(o.coverage)}</span>
         </div>
         <h3>
@@ -141,15 +160,9 @@ export function OfferCard({
         </div>
         <div className="offer-terms">
           <span>
-            {o.warranty_months == null
-              ? o.warranty_details ? "Warranty needs confirmation" : "Warranty undisclosed"
-              : `${o.warranty_months}-month warranty`}
+            {warrantyLabel(o)}
           </span>
-          <span>
-            {o.return_days == null
-              ? "Returns undisclosed"
-              : `${o.return_days}-day returns`}
-          </span>
+          <span>{returnsLabel(o)}</span>
         </div>
         <div className="price-row">
           <strong>{money(o.price_paise)}</strong>
@@ -168,7 +181,7 @@ export function OfferCard({
           {o.shipping_paise == null
             ? "Shipping not disclosed"
             : o.shipping_paise === 0
-              ? "Shipping included"
+              ? "Free shipping advertised"
               : `+ ${money(o.shipping_paise)} shipping`}
         </p>
         <div className="seller-row">
@@ -220,7 +233,7 @@ export function Comparison({ data }) {
     ["Purchase type", (o) => o.listing_type || "USED"],
     ["Platform / retailer", (o) => o.seller],
     ["Listed price", (o) => money(o.price_paise)],
-    ["Product rating at this store", (o) => o.product_rating == null ? "Not disclosed" : `${Number(o.product_rating).toFixed(1)}/5 · ${Number(o.product_rating_count).toLocaleString("en-IN")} ${o.product_rating_count_type} on ${o.seller}`],
+    ["Product rating at this store", (o) => o.product_rating == null ? o.listing_details?.ratingStatus === "NO_REVIEWS" ? "No product reviews yet" : "Rating unavailable" : `${Number(o.product_rating).toFixed(1)}/5 · ${Number(o.product_rating_count).toLocaleString("en-IN")} ${o.product_rating_count_type} on ${o.seller}`],
     ["Manufacturer model code", (o) => o.model_code || "Not disclosed"],
     ["Mount", (o) => o.mount || "Not disclosed"],
     ["Sensor coverage", (o) => coverage(o.coverage)],
@@ -235,14 +248,15 @@ export function Comparison({ data }) {
     ["Autofocus", (o) => yesno(o.autofocus)],
     ["Lens stabilization", (o) => yesno(o.stabilized)],
     ["Seller’s condition grade", (o) => o.condition_label],
-    ["Fungus", (o) => optical(o.fungus)],
-    ["Optical scratches", (o) => optical(o.scratches)],
-    ["Haze", (o) => optical(o.haze)],
+    ["Fungus", (o) => opticalCondition(o, "fungus")],
+    ["Optical scratches", (o) => opticalCondition(o, "scratches")],
+    ["Haze", (o) => opticalCondition(o, "haze")],
     ["Source listing summary", (o) => o.condition_notes],
     ["Included accessories", (o) => o.accessories || "Not disclosed"],
-    ["Seller warranty", (o) => disclosed(o.warranty_months, " months")],
-    ["Warranty scope", (o) => o.warranty_details || "Not disclosed"],
-    ["Return window", (o) => disclosed(o.return_days, " days")],
+    ["Warranty", warrantyLabel],
+    ["Warranty scope", (o) => o.warranty_details || "Not verified"],
+    ["Returns", returnsLabel],
+    ["Return conditions", (o) => o.listing_details?.returnDetails || "Not verified"],
     ["Shipping", (o) => money(o.shipping_paise)],
     [
       "Price + disclosed shipping",

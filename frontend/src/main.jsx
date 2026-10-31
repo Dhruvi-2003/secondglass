@@ -8,6 +8,8 @@ import {
   Comparison,
   PriceHistory,
   ProductRating,
+  ListingEvidence,
+  BrandMark,
 } from "./components";
 import {
   api,
@@ -16,6 +18,9 @@ import {
   disclosed,
   coverage,
   optical,
+  opticalCondition,
+  warrantyLabel,
+  returnsLabel,
   quality,
   defaults,
   initialFilters,
@@ -978,6 +983,7 @@ function App() {
             <>
               <div className="detail-hero">
                 <div>
+                  <BrandMark brand={detail.brand} />
                   <p className="eyebrow">{detail.seller}</p>
                   <strong>{money(detail.price_paise)}</strong>
                   <p>
@@ -1003,11 +1009,12 @@ function App() {
               )}
               <ProductRating offer={detail} />
               <p className="fine-print">Product reviews reported by this store, possibly across variants. This is not a rating of the retailer or the condition of a used copy. Scores are not combined across stores.</p>
+              <ListingEvidence offer={detail} />
               <h3>Source listing summary</h3>
               <p className="source-summary">{detail.condition_notes}</p>
               <p className="fine-print">
-                Seller statement, not an independent inspection. Condition
-                grades are not standardized across dealers.
+                Retailer statements are linked above. Used-lens condition grades
+                are not standardized across dealers or independently inspected.
               </p>
               <dl>
                 <dt>Model code</dt>
@@ -1015,23 +1022,25 @@ function App() {
                   {detail.model_code ||
                     "Not disclosed — exact variant unconfirmed"}
                 </dd>
+                {detail.listing_type !== "NEW" && <>
                 <dt>Fungus</dt>
-                <dd>{optical(detail.fungus)}</dd>
+                <dd>{opticalCondition(detail, "fungus")}</dd>
                 <dt>Optical scratches</dt>
-                <dd>{optical(detail.scratches)}</dd>
+                <dd>{opticalCondition(detail, "scratches")}</dd>
                 <dt>Haze</dt>
-                <dd>{optical(detail.haze)}</dd>
+                <dd>{opticalCondition(detail, "haze")}</dd>
+                </>}
                 <dt>Included accessories</dt>
                 <dd>{detail.accessories || "Not disclosed"}</dd>
-                <dt>Seller warranty</dt>
+                <dt>Warranty</dt>
                 <dd>
-                  {disclosed(detail.warranty_months, " months")}
+                  {warrantyLabel(detail)}
                   <small>
-                    {detail.warranty_details || "Scope not disclosed"}
+                    {detail.warranty_details || "Warranty terms not verified"}
                   </small>
                 </dd>
-                <dt>Return window</dt>
-                <dd>{disclosed(detail.return_days, " days")}</dd>
+                <dt>Returns</dt>
+                <dd>{returnsLabel(detail)}<small>{detail.listing_details?.returnDetails || "Return conditions not verified"}</small></dd>
                 <dt>Shipping</dt>
                 <dd>{money(detail.shipping_paise)}</dd>
                 <dt>Price + shipping</dt>

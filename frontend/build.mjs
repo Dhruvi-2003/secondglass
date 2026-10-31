@@ -1,9 +1,10 @@
 import * as esbuild from "esbuild";
-import { mkdir, copyFile, readFile, writeFile } from "node:fs/promises";
+import { mkdir, copyFile, readFile, writeFile, cp } from "node:fs/promises";
 const pages = process.argv.includes("--pages");
 const out = pages ? "../docs-site" : "../backend/src/main/resources/static";
 await mkdir(out, { recursive: true });
 await copyFile("index.html", `${out}/index.html`);
+await cp("assets/brands", `${out}/assets/brands`, {recursive:true});
 if (pages) {
   const {prepareSnapshot} = await import('./prepare-pages.mjs');
   const snapshot = prepareSnapshot(JSON.parse(await readFile('../catalogue/live.json','utf8')));
