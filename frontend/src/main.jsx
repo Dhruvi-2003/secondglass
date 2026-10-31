@@ -4,7 +4,7 @@ import {
   Icon,
   Aperture,
   Modal,
-  OfferCard,
+  LensGroupCard,
   Comparison,
   PriceHistory,
   ProductRating,
@@ -38,6 +38,8 @@ function App() {
     [page, setPage] = useState(0),
     [view, setView] = useState("all"),
     [offers, setOffers] = useState([]),
+    [lensGroups, setLensGroups] = useState([]),
+    [totalOffers, setTotalOffers] = useState(0),
     [total, setTotal] = useState(0),
     [demo, setDemo] = useState(false),
     [sourceInfo, setSourceInfo] = useState(null),
@@ -67,6 +69,7 @@ function App() {
     [usageEnabled, setUsageEnabled] = useState(trackingAllowed);
   const requestVersion = useRef(0),
     catalogRef = useRef(null);
+  const savedFilter = view === "saved" ? saved.join(",") : "";
   useEffect(() => {
     event("page_view");
     api("/api/sources")
@@ -97,8 +100,10 @@ function App() {
     setError("");
     const timer = setTimeout(async () => {
       try {
-        if (view === "saved" && !saved.length) {
+        if (view === "saved" && !savedFilter) {
           setOffers([]);
+          setLensGroups([]);
+          setTotalOffers(0);
           setTotal(0);
           return;
         }
@@ -106,10 +111,13 @@ function App() {
           ...filters,
           page,
           size: 12,
-          ...(view === "saved" ? { ids: saved.join(",") } : {}),
+          grouped: true,
+          ...(view === "saved" ? { ids: savedFilter } : {}),
         });
         const data = await api("/api/catalog?" + params, { signal: c.signal });
         setOffers(data.offers);
+        setLensGroups(data.groups);
+        setTotalOffers(data.totalOffers);
         setTotal(data.total);
         setDemo(data.demo);
       } catch (e) {
@@ -127,7 +135,7 @@ function App() {
       clearTimeout(timer);
       c.abort();
     };
-  }, [filters, page, view, saved, reload]);
+  }, [filters, page, view, savedFilter, reload]);
   useEffect(() => {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(filters))
@@ -168,6 +176,7 @@ function App() {
       return;
     }
     setSaved(next);
+    if(view === "saved") setPage(0);
     try {
       localStorage.setItem("secondglass.saved", JSON.stringify(next));
       setStatus(
@@ -729,7 +738,8 @@ function App() {
                   ) : (
                     <>
                       <strong>{total}</strong>{" "}
-                      {total === 1 ? "listing" : "listings"}
+                      {total === 1 ? "lens result" : "lens results"}
+                      <span className="result-offer-count"> · {totalOffers} store {totalOffers===1 ? "offer" : "offers"}</span>
                       {view === "saved"
                         ? " in your filtered shortlist"
                         : demo
@@ -808,16 +818,15 @@ function App() {
                 </div>
               ) : (
                 <div className="offer-grid">
-                  {offers.map((o) => (
-                    <OfferCard
-                      key={o.id}
-                      offer={o}
-                      saved={saved.includes(o.id)}
-                      selected={selected.includes(o.id)}
-                      full={selected.length >= 3}
-                      onSave={() => toggleSave(o.id)}
-                      onCompare={() => toggleCompare(o.id)}
-                      onDetails={() => openDetails(o.id)}
+                  {lensGroups.map((group) => (
+                    <LensGroupCard
+                      key={group.id}
+                      group={group}
+                      saved={saved}
+                      selected={selected}
+                      onSave={toggleSave}
+                      onCompare={toggleCompare}
+                      onDetails={openDetails}
                     />
                   ))}
                 </div>
@@ -847,7 +856,7 @@ function App() {
                 <Icon name="info" />
                 {demo
                   ? "All prices, dealers, grades and histories are illustrative. No live seller feeds are connected."
-                  : "Prices and stock can change. Confirm the listing and terms with the seller before buying."}
+                  : "Exact variants are grouped where confirmed. Prices and stock can change; confirm each offer’s terms with the seller before buying."}
               </p>
             </div>
           </div>

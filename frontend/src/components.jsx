@@ -228,6 +228,60 @@ export function OfferCard({
     </article>
   );
 }
+export function LensGroupCard({group, saved, selected, onSave, onCompare, onDetails}) {
+  const [expanded,setExpanded]=useState(false), panelId=useId();
+  const offers=group.offers, lens=offers[0];
+  const actions=o=>({offer:o,saved:saved.includes(o.id),selected:selected.includes(o.id),full:selected.length>=3,
+    onSave:()=>onSave(o.id),onCompare:()=>onCompare(o.id),onDetails:()=>onDetails(o.id)});
+  if(offers.length===1) return <OfferCard {...actions(lens)} />;
+  const priced=offers.some(o=>o.availability!=='OUT_OF_STOCK') ? offers.filter(o=>o.availability!=='OUT_OF_STOCK') : offers;
+  const conditionPrices=['NEW','USED','REFURBISHED'].map(kind=>{
+    const rows=priced.filter(o=>(o.listing_type || 'USED')===kind);
+    return rows.length ? {kind,price:Math.min(...rows.map(o=>o.price_paise))} : null;
+  }).filter(Boolean);
+  const conditionName={NEW:'New',USED:'Used',REFURBISHED:'Refurbished'};
+  return <article className={`offer-card lens-group ${offers.some(o=>selected.includes(o.id)) ? 'selected-card' : ''}`}>
+    <div className="lens-group-head">
+      <div>
+        <div className="brand-row"><BrandMark brand={lens.brand}/><span>{coverage(lens.coverage)}</span></div>
+        <h3>{lens.model}</h3>
+        <p className="lens-meta">{lens.mount} <span>·</span> {lens.model_code}</p>
+        <p className="group-store-count">Listed at {group.storeCount} {group.storeCount===1 ? 'store' : 'stores'} <span>· {offers.length} offers</span></p>
+      </div>
+      <div className="group-price">
+        <span>{group.soldOut ? 'Sold-out reference from' : 'Listed from'}</span>
+        <strong>{money(group.fromPrice)}</strong>
+        <small>{group.inStockStoreCount ? `${group.inStockStoreCount} ${group.inStockStoreCount===1 ? 'store lists' : 'stores list'} in stock` : group.soldOut ? 'All shown offers sold out' : 'Stock needs confirmation'}</small>
+      </div>
+    </div>
+    <div className="condition-prices">{conditionPrices.map(c=><span key={c.kind}>{conditionName[c.kind]} from <strong>{money(c.price)}</strong></span>)}</div>
+    <p className="group-note">Same confirmed model and mount. Condition and store terms differ. Prices exclude undisclosed shipping.</p>
+    <button className="group-expand" aria-expanded={expanded} aria-controls={panelId} onClick={()=>setExpanded(!expanded)}>
+      {expanded ? 'Hide store offers' : `Compare ${group.storeCount} ${group.storeCount===1 ? 'store' : 'stores'}`}<Icon name="chevron"/>
+    </button>
+    <div id={panelId} hidden={!expanded} className="store-offers">
+      {offers.map(o=><div className={`store-offer ${selected.includes(o.id) ? 'store-offer-selected' : ''}`} key={o.id}>
+        <div className="store-offer-seller"><strong>{o.seller}</strong><span>{o.condition_label}</span>
+          <small className={o.stale ? 'stale' : ''} title={new Date(o.observed_at).toLocaleString()}>{ago(o.observed_at)}{o.stale ? ' · stale' : ''}</small>
+        </div>
+        <div className="store-offer-terms"><span>{warrantyLabel(o)}</span><span>{returnsLabel(o)}</span>
+          {o.product_rating != null && <ProductRating offer={o}/>}
+        </div>
+        <div className="store-offer-price"><strong>{money(o.price_paise)}</strong>
+          <span>{o.availability==='IN_STOCK' ? 'In stock' : o.availability==='OUT_OF_STOCK' ? 'Sold out' : o.availability==='BACKORDER' ? 'Backorder' : 'Stock unknown'}</span>
+          <small>{o.shipping_paise==null ? 'Shipping unconfirmed' : o.shipping_paise===0 ? 'Free shipping advertised' : `+ ${money(o.shipping_paise)} shipping`}</small>
+        </div>
+        <div className="store-offer-actions">
+          <div><button className={`icon-button ${saved.includes(o.id) ? 'saved' : ''}`} onClick={()=>onSave(o.id)} aria-label={`${saved.includes(o.id) ? 'Unsave' : 'Save'} ${o.model} from ${o.seller}`} aria-pressed={saved.includes(o.id)}><Icon name="bookmark"/></button>
+            <label><input type="checkbox" checked={selected.includes(o.id)} disabled={selected.length>=3 && !selected.includes(o.id)} onChange={()=>onCompare(o.id)} aria-label={`Compare ${o.condition_label} from ${o.seller}`}/>Compare</label>
+          </div>
+          <button onClick={()=>onDetails(o.id)} aria-label={`Details for ${o.condition_label} from ${o.seller}`}>Details & terms</button>
+          {!o.demo && o.source_url && <a className="seller-link" href={o.source_url} target="_blank" rel="noopener noreferrer">{o.availability==='OUT_OF_STOCK' ? 'Check seller' : 'View seller'} <Icon name="external"/></a>}
+        </div>
+      </div>)}
+    </div>
+  </article>;
+}
 export function Comparison({ data }) {
   const rows = [
     ["Purchase type", (o) => o.listing_type || "USED"],

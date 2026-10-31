@@ -89,3 +89,15 @@ Product-specific Judge.me and WooCommerce review widgets supplement product JSON
 Optical condition is read only from explicit seller-authored optical claims within a used product’s description. Generic condition charts, QC promises, customer reviews and body scratches do not establish glass condition. Family descriptions across condition variants do not establish individual-copy condition. New listings omit the used-lens optical checklist. Missing optical claims remain unknown and are labelled **Not captured**.
 
 Some fields will remain missing: retailers may not publish them, may render them only interactively, or may contradict themselves. No AI inference is used to fill these gaps. Known manufacturer model mappings remain conservative; more specifications do not automatically establish cross-store variant equivalence.
+
+## Grouped lens results
+
+The catalogue UI requests `/api/catalog?grouped=true`. Filters are applied to offers first, then exact configurations are grouped, sorted and paginated. `total` counts lens results, `totalOffers` counts matching store offers, `groups` contains the current page's groups and `offers` contains all offers belonging to those groups. A lens cannot be split across pages. The existing ungrouped API remains available by default.
+
+Only complete manufacturer identities may merge: manufacturer, model code, mount, sensor coverage, focal range, maximum aperture, autofocus and lens stabilisation must agree. Unknown identities remain separate; matching titles and condition grades are insufficient. The Pages adapter also checks the identity fields even if configuration IDs agree. New, used and refurbished offers can share a model group, with their condition and commercial terms retained individually.
+
+Each group reports unique retailers, unique retailers listing stock, the lowest matching non-sold-out price (or a clearly labelled sold-out reference when all are sold out), and the latest observation for sorting. It never substitutes a cheaper sold-out offer when a current offer exists. Price-descending sorting uses the group's lowest eligible price, rather than its most expensive seller. Counts and starting prices reflect the active filters. Store ratings are never averaged into a lens rating.
+
+The browser expands store rows with individual condition, stock, review score, warranty, returns, shipping, timestamps and direct seller links. Saving, selecting for comparison, shared comparison links and detail/history views continue to use individual offer IDs. Unmatched single offers retain their existing cards.
+
+For this pilot the Spring endpoint groups filtered rows in memory; the Pages version groups its downloaded snapshot. A substantially larger backend catalogue should paginate configuration IDs in the database and fetch the selected groups' offers, preserving the same filter/group/sort contract.

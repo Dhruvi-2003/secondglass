@@ -32,7 +32,8 @@ public class CatalogController {
             @RequestParam(defaultValue="") String brand,@RequestParam(defaultValue="") String coverage,@RequestParam(defaultValue="") String kind,
             @RequestParam(defaultValue="false") boolean freshOnly,@RequestParam(defaultValue="false") boolean inStockOnly,
             @RequestParam(defaultValue="false") boolean includeSoldOut,@RequestParam(defaultValue="false") boolean disclosedClearOnly,@RequestParam(defaultValue="price") String sort,
-            @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="12") int size,@RequestParam(defaultValue="") String ids,@RequestParam(defaultValue="") String retailer,@RequestParam(defaultValue="") String listingType,@RequestParam(defaultValue="") String mount) {
+            @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="12") int size,@RequestParam(defaultValue="") String ids,@RequestParam(defaultValue="") String retailer,@RequestParam(defaultValue="") String listingType,@RequestParam(defaultValue="") String mount,
+            @RequestParam(defaultValue="false") boolean grouped) {
         if(q.length()>100||brand.length()>80||maxPrice<0||maxPrice>1_000_000||page<0||page>1000||size<1||size>48) throw new IllegalArgumentException("Filter values are outside supported limits.");
         if(!Set.of("","FULL_FRAME","APS_C").contains(coverage)||!Set.of("","prime","zoom").contains(kind)) throw new IllegalArgumentException("Unknown lens filter.");
         var args=new ArrayList<Object>();
@@ -60,10 +61,47 @@ public class CatalogController {
             where.append("AND o.id IN ("+String.join(",",Collections.nCopies(list.size(),"?"))+") "); args.addAll(list);
         }
         String order=switch(sort) { case "recent" -> "o.observed_at DESC"; case "price" -> "CASE WHEN o.availability='OUT_OF_STOCK' THEN 1 ELSE 0 END,o.price_paise ASC"; case "price-desc" -> "o.price_paise DESC"; default -> throw new IllegalArgumentException("Unknown sort option."); };
+        if(grouped) {
+            var rows=db.queryForList(SELECT+where,args.toArray()).stream().map(this::decorate).toList();
+            var groups=groupOffers(rows,sort);
+            int start=Math.min(page*size,groups.size()),end=Math.min(start+size,groups.size());
+            var visible=groups.subList(start,end);
+            return Map.of("groups",visible,"offers",visible.stream().flatMap(g->g.offers().stream()).toList(),"demo",demo,
+                "freshHours",freshHours,"total",groups.size(),"totalOffers",rows.size(),"page",page,"size",size);
+        }
         int total=db.queryForObject("SELECT count(*)"+FROM+where,Integer.class,args.toArray());
         args.add(size); args.add(page*size);
         var offers=db.queryForList(SELECT+where+"ORDER BY "+order+",o.id LIMIT ? OFFSET ?",args.toArray()).stream().map(this::decorate).toList();
         return Map.of("offers",offers,"demo",demo,"freshHours",freshHours,"total",total,"page",page,"size",size);
+    }
+    public record LensGroup(String id,List<Map<String,Object>> offers,int storeCount,int inStockStoreCount,long fromPrice,boolean soldOut,String latestObservedAt) {}
+    private static List<LensGroup> groupOffers(List<Map<String,Object>> rows,String sort) {
+        var grouped=new HashMap<String,List<Map<String,Object>>>();
+        for(var row:rows) {
+            // ImportService establishes complete configuration identity. Incomplete
+            // records stay independent even if their human-readable titles agree.
+            String key=Boolean.TRUE.equals(row.get("complete"))?"lens:"+row.get("configuration_id"):"offer:"+row.get("id");
+            grouped.computeIfAbsent(key,k->new ArrayList<>()).add(row);
+        }
+        var result=new ArrayList<LensGroup>();
+        for(var entry:grouped.entrySet()) {
+            var offers=entry.getValue();
+            offers.sort(Comparator.<Map<String,Object>,Boolean>comparing(o->"OUT_OF_STOCK".equals(o.get("availability")))
+                .thenComparingLong(o->((Number)o.get("price_paise")).longValue()).thenComparing(o->o.get("id").toString()));
+            var active=offers.stream().filter(o->!"OUT_OF_STOCK".equals(o.get("availability"))).toList();
+            var priced=active.isEmpty()?offers:active;
+            result.add(new LensGroup(entry.getKey(),offers,(int)offers.stream().map(o->o.get("retailer_id")).distinct().count(),
+                (int)offers.stream().filter(o->"IN_STOCK".equals(o.get("availability"))).map(o->o.get("retailer_id")).distinct().count(),
+                priced.stream().mapToLong(o->((Number)o.get("price_paise")).longValue()).min().orElseThrow(),active.isEmpty(),
+                offers.stream().map(o->Instant.parse(o.get("observed_at").toString())).max(Comparator.naturalOrder()).orElseThrow().toString()));
+        }
+        Comparator<LensGroup> order=switch(sort) {
+            case "recent" -> Comparator.comparing((LensGroup g)->Instant.parse(g.latestObservedAt())).reversed();
+            case "price-desc" -> Comparator.comparingLong(LensGroup::fromPrice).reversed();
+            default -> Comparator.comparing(LensGroup::soldOut).thenComparingLong(LensGroup::fromPrice);
+        };
+        result.sort(order.thenComparing(LensGroup::id));
+        return result;
     }
     private Map<String,Object> decorate(Map<String,Object> row) {
         var raw=row.get("listing_details");

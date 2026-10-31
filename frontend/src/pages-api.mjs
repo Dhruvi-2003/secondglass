@@ -1,4 +1,5 @@
 // Read-only adapter for GitHub Pages. No remote AI, feedback sink or server API.
+import {groupOffers} from './group-offers.mjs';
 export function createSnapshotApi(snapshot, now = () => Date.now()) {
   const byId = new Map(snapshot.offers.map(o => [o.id, o]));
   const decorate = o => ({...o, stale: now() - Date.parse(o.observed_at) > 86400000});
@@ -33,6 +34,10 @@ export function createSnapshotApi(snapshot, now = () => Date.now()) {
         sort === 'price-desc' ? b.price_paise-a.price_paise :
         Number(a.availability === 'OUT_OF_STOCK')-Number(b.availability === 'OUT_OF_STOCK') || a.price_paise-b.price_paise) || a.id.localeCompare(b.id));
       const page = Math.max(0,Number(p.get('page')) || 0), size = Math.min(48,Math.max(1,Number(p.get('size')) || 12));
+      if(p.get('grouped') === 'true') {
+        const allGroups=groupOffers(rows.map(decorate),sort), groups=allGroups.slice(page*size,(page+1)*size);
+        return {groups,offers:groups.flatMap(g=>g.offers),total:allGroups.length,totalOffers:rows.length,page,size,demo:false,freshHours:24};
+      }
       return {offers: rows.slice(page*size,(page+1)*size).map(decorate), total: rows.length, page, size, demo:false, freshHours:24};
     }
     if (pathname === '/api/compare') {

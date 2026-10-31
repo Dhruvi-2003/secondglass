@@ -251,4 +251,34 @@ class CatalogTest {
         assertThat(count("offer")).isZero();
     }
 
+    @Test void groupedResultsKeepEveryExactOfferTogetherBeforePagination() throws Exception {
+        importer.ingest("groups",List.of(row("a","one","SEL50F18F","Sony E",1290000,now),
+            row("b","two","SEL50F18F","Sony E",1390000,now),row("c","three","SEL50F18F","Sony E",1090000,now),
+            row("d","four","SEL50F18F","Nikon Z",1590000,now),row("e","five",null,"Sony E",1790000,now)));
+        http.perform(get("/api/catalog").param("grouped","true").param("size","1"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(3)).andExpect(jsonPath("$.totalOffers").value(5))
+            .andExpect(jsonPath("$.groups.length()").value(1)).andExpect(jsonPath("$.groups[0].storeCount").value(3))
+            .andExpect(jsonPath("$.groups[0].offers.length()").value(3)).andExpect(jsonPath("$.offers.length()").value(3))
+            .andExpect(jsonPath("$.groups[0].fromPrice").value(1090000));
+        http.perform(get("/api/catalog").param("grouped","true").param("size","1").param("page","1"))
+            .andExpect(jsonPath("$.groups[0].offers.length()").value(1)).andExpect(jsonPath("$.offers[0].mount").value("Nikon Z"));
+        http.perform(get("/api/catalog").param("grouped","true").param("retailer","a"))
+            .andExpect(jsonPath("$.totalOffers").value(1)).andExpect(jsonPath("$.groups[0].storeCount").value(1));
+        http.perform(get("/api/catalog").param("grouped","true").param("maxPrice","12000"))
+            .andExpect(jsonPath("$.totalOffers").value(1)).andExpect(jsonPath("$.offers[0].retailer_id").value("c"));
+    }
+    @Test void groupedPriceDoesNotUseSoldOutLowPriceOrHighestOfferForDescendingSort() throws Exception {
+        importer.ingest("group-prices",List.of(row("a","one","SEL50F18F","Sony E",1000000,now),
+            row("b","two","SEL50F18F","Sony E",9000000,now),row("c","three","OTHER","Sony E",2000000,now),
+            row("d","four","SEL50F18F","Sony E",500000,now)));
+        db.update("UPDATE offer SET availability='OUT_OF_STOCK' WHERE retailer_id='d'");
+        http.perform(get("/api/catalog").param("grouped","true").param("includeSoldOut","true"))
+            .andExpect(jsonPath("$.groups[0].fromPrice").value(1000000)).andExpect(jsonPath("$.groups[0].storeCount").value(3))
+            .andExpect(jsonPath("$.groups[0].inStockStoreCount").value(2));
+        http.perform(get("/api/catalog").param("grouped","true").param("sort","price-desc"))
+            .andExpect(jsonPath("$.groups[0].fromPrice").value(2000000));
+        http.perform(get("/api/catalog").param("grouped","true").param("inStockOnly","true").param("includeSoldOut","true"))
+            .andExpect(jsonPath("$.totalOffers").value(3));
+    }
+
 }
