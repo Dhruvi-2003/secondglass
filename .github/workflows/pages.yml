@@ -25,6 +25,14 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - name: Load latest catalogue from data branch
+        run: |
+          data_ref=$(git ls-remote --heads origin refs/heads/catalogue-data)
+          if [ -n "$data_ref" ]; then
+            git fetch origin refs/heads/catalogue-data:refs/remotes/origin/catalogue-data
+            git show origin/catalogue-data:catalogue/live.json > catalogue/live.json.tmp
+            mv catalogue/live.json.tmp catalogue/live.json
+          fi
       - uses: actions/setup-python@v5
         if: github.event_name == 'schedule' || inputs.refresh == true
         with:
@@ -52,13 +60,22 @@ jobs:
       - name: Save validated catalogue
         if: github.event_name == 'schedule' || inputs.refresh == true
         run: |
-          git add catalogue/live.json
-          if ! git diff --cached --quiet; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'Refresh retailer catalogue'
-            # No force-push: a concurrent user commit must never be overwritten.
-            git push origin HEAD:main
+          data_dir="$RUNNER_TEMP/catalogue-data"
+          if git show-ref --verify --quiet refs/remotes/origin/catalogue-data; then
+            git worktree add --detach "$data_dir" origin/catalogue-data
+          else
+            git worktree add --detach "$data_dir" HEAD
+            git -C "$data_dir" switch --orphan catalogue-data
+          fi
+          mkdir -p "$data_dir/catalogue"
+          cp catalogue/live.json "$data_dir/catalogue/live.json"
+          git -C "$data_dir" add catalogue/live.json
+          if ! git -C "$data_dir" diff --cached --quiet; then
+            git -C "$data_dir" config user.name 'github-actions[bot]'
+            git -C "$data_dir" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git -C "$data_dir" commit -m 'Refresh retailer catalogue'
+            # Data-only history; main is never changed by the collector.
+            git -C "$data_dir" push origin HEAD:refs/heads/catalogue-data
           fi
       # Bot commits do not trigger push workflows; publish in this same run.
       - uses: actions/configure-pages@v5
