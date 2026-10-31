@@ -184,6 +184,23 @@ class CatalogTest {
             .andExpect(jsonPath("$.offers[0].product_rating_count_type").value("ratings"))
             .andExpect(jsonPath("$.offers[0].seller").value("Sample a"));
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(longs={123456789L,999999999L})
+    void nanosecondObservationsRetainRatingsAndReplaySafely(long nanos) {
+        var at=now.truncatedTo(java.time.temporal.ChronoUnit.SECONDS).plusNanos(nanos);
+        var original=rated(row("a","one","SEL50F18F","Sony E",1290000,at),4.5,580,"ratings");
+        importer.ingest("nano-first",List.of(original));
+        importer.ingest("nano-repeat",List.of(original));
+        assertThat(count("observation")).isEqualTo(1);
+        assertThat(db.queryForObject("SELECT product_rating_count FROM offer",Integer.class)).isEqualTo(580);
+        assertThat(db.queryForObject("SELECT observed_at FROM offer",java.time.OffsetDateTime.class).toInstant())
+            .isEqualTo(at.truncatedTo(java.time.temporal.ChronoUnit.MICROS));
+        var collision=rated(row("a","one","SEL50F18F","Sony E",1190000,at.minusNanos(1)),2,10,"reviews");
+        assertThat(importer.ingest("nano-conflict",List.of(collision)).rejected()).isEqualTo(1);
+        assertThat(count("observation")).isEqualTo(1);
+        assertThat(db.queryForObject("SELECT price_paise FROM offer",Long.class)).isEqualTo(1290000L);
+        assertThat(db.queryForObject("SELECT product_rating_count FROM offer",Integer.class)).isEqualTo(580);
+    }
     @Test void invalidRatingsAreQuarantined() {
         var row=row("a","one","SEL50F18F","Sony E",1290000,now);
         assertThat(importer.ingest("bad-score",List.of(rated(row,5.1,10,"ratings"))).rejected()).isEqualTo(1);

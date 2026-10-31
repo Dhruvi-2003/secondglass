@@ -107,7 +107,9 @@ public class ImportService {
         if(db.queryForObject("SELECT count(*) FROM observation WHERE offer_id=? AND observed_at=?",Integer.class,offerId,at(r))==0)
             db.update("INSERT INTO observation VALUES(?,?,?,?,?,?,?,?)",UUID.randomUUID().toString(),offerId,batchId,configId,r.pricePaise(),r.availability(),at(r),fingerprint(r));
     }
-    private static OffsetDateTime at(SourceObservation r) { return OffsetDateTime.ofInstant(r.observedAt(),ZoneOffset.UTC); }
+    // H2 and PostgreSQL persist microseconds. Use the same precision in reads and writes;
+    // otherwise a nanosecond timestamp can miss its own stored row on replay or rating update.
+    private static OffsetDateTime at(SourceObservation r) { return OffsetDateTime.ofInstant(r.observedAt().truncatedTo(java.time.temporal.ChronoUnit.MICROS),ZoneOffset.UTC); }
     private String fingerprint(Object object) { try { return hash(json.writeValueAsString(object)); } catch(JsonProcessingException e) { throw new IllegalArgumentException("Cannot read import."); } }
     private static String normalized(String s) { return s==null?"?":s.strip().toLowerCase(Locale.ROOT).replaceAll("\\s+"," "); }
     private static void required(String s,int max,String field) { if(s==null||s.isBlank()||s.length()>max||s.contains("|")||s.indexOf('\0')>=0) throw new IllegalArgumentException(field+" is missing or invalid."); }
