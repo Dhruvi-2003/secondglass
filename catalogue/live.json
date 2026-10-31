@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-31T19:44:25.946411Z",
+  "generatedAt": "2026-10-31T19:46:21.481188Z",
   "sources": [
     {
       "id": "sigmaindia",
@@ -18,12 +18,12 @@
       "name": "Reliance Digital",
       "url": "https://www.reliancedigital.in/product/sony-sel24105g-24-105-mm-standard-lens",
       "storeType": "Electronics retailer",
-      "status": "UNAVAILABLE",
+      "status": "RETAINED",
       "checkedAt": "2026-10-31T19:43:52.686271Z",
-      "lastSuccessAt": null,
-      "offers": 0,
+      "lastSuccessAt": "2026-10-31T19:45:41.755678Z",
+      "offers": 1,
       "scope": "Selected Sony FE 24–105mm retail listing; delivery and stock depend on pincode",
-      "message": "No verified listings available.",
+      "message": "Public page verified directly; scheduled cloud requests returned HTTP 403. Original observation time is preserved until a successful refresh.",
       "error": "HTTPError: HTTP Error 403: Forbidden"
     },
     {
@@ -1264,6 +1264,37 @@
       "availability": "IN_STOCK",
       "sourceUrl": "https://shopatsc.com/products/sel1625g?variant=42301011296395",
       "observedAt": "2026-10-31T19:44:24.864887Z",
+      "demo": false,
+      "listingType": "NEW"
+    },
+    {
+      "retailerId": "reliance",
+      "retailerName": "Reliance Digital",
+      "externalKey": "SEL24105G",
+      "brand": "Sony",
+      "model": "Sony FE 24-105mm F4 G OSS",
+      "modelCode": "SEL24105G",
+      "mount": "Sony E",
+      "coverage": "FULL_FRAME",
+      "focalMin": 24,
+      "focalMax": 105,
+      "maxAperture": "4",
+      "autofocus": true,
+      "stabilized": true,
+      "conditionLabel": "New",
+      "conditionNotes": "Retail product listing with direct checkout. Availability and delivery depend on the pincode entered on Reliance Digital. Structured-data stock is not a verified delivery quote; check current stock, warranty and final price on the seller page. Conditional payment offers are excluded.",
+      "fungus": "UNKNOWN",
+      "scratches": "UNKNOWN",
+      "haze": "UNKNOWN",
+      "accessories": null,
+      "warrantyMonths": null,
+      "warrantyDetails": null,
+      "returnDays": null,
+      "pricePaise": 10749000,
+      "shippingPaise": null,
+      "availability": "UNKNOWN",
+      "sourceUrl": "https://www.reliancedigital.in/product/sony-sel24105g-24-105-mm-standard-lens",
+      "observedAt": "2026-10-31T19:45:41.755678Z",
       "demo": false,
       "listingType": "NEW"
     }
