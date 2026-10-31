@@ -1,6 +1,9 @@
 import unittest
 import json
-from refresh_sources import parse_amazon,parse_product,paise,refresh,base,validate_destination,RETAILERS,parse_rating,amazon_rating
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
+from refresh_sources import parse_amazon,parse_product,paise,refresh,base,validate_destination,RETAILERS,parse_rating,amazon_rating,save_snapshot,write_summary,SOURCES
 AT='2026-10-31T10:00:00Z'
 class SourceContractTests(unittest.TestCase):
  def test_brand_is_manufacturer_not_camera_mount(self):
@@ -39,6 +42,38 @@ class SourceContractTests(unittest.TestCase):
   self.assertEqual(result['observations'],[old])
   source=next(s for s in result['sources'] if s['id']=='amazon')
   self.assertEqual(source['status'],'RETAINED');self.assertEqual(source['lastSuccessAt'],AT)
+ def test_total_failure_does_not_replace_existing_file(self):
+  with TemporaryDirectory() as directory:
+   output=Path(directory)/'live.json';output.write_text('{"existing":"catalogue"}\n')
+   original=output.read_bytes()
+   result=refresh({},lambda url:(_ for _ in ()).throw(TimeoutError('offline')))
+   with self.assertRaisesRegex(ValueError,'No source refreshed'):save_snapshot(output,result)
+   self.assertEqual(output.read_bytes(),original)
+   self.assertFalse(output.with_suffix('.tmp').exists())
+ def test_partial_store_failure_retains_whole_store_and_publishes_other_success(self):
+  old=base('fotocentre','Foto Centre India','old','Sony FE 50mm f/1.8 Lens',2000000,'https://fotocentreindia.com/product/old/',AT,'NEW')
+  urls={'fotocentre':['https://fotocentreindia.com/product/one/','https://fotocentreindia.com/product/two/'],
+        'sony':['https://shopatsc.com/products/lens']}
+  html=self.product('Sony FE 50mm f/1.8 Lens',{'priceCurrency':'INR','price':21000,'availability':'https://schema.org/InStock'})
+  def reader(url):
+   if url.endswith('/two/'):raise TimeoutError('second product failed')
+   return html,'2026-11-01T10:00:00Z'
+  with patch('refresh_sources.SOURCES',[s for s in SOURCES if s[0] in urls]),patch('refresh_sources.PRODUCTS',urls):
+   result=refresh({'observations':[old]},reader)
+  self.assertEqual([r for r in result['observations'] if r['retailerId']=='fotocentre'],[old])
+  self.assertEqual({s['id']:s['status'] for s in result['sources']},{'fotocentre':'RETAINED','sony':'OK'})
+  with TemporaryDirectory() as directory:
+   output=Path(directory)/'live.json';save_snapshot(output,result)
+   self.assertEqual(json.loads(output.read_text()),result)
+   report=Path(directory)/'summary.md';write_summary(report,result)
+   self.assertIn('RETAINED',report.read_text());self.assertIn(AT,report.read_text())
+ def test_duplicate_listing_rejects_snapshot_without_replacing_previous(self):
+  row=base('sony','ShopAtSC','one','Sony FE 50mm f/1.8 Lens',2000000,'https://shopatsc.com/products/lens',AT,'NEW')
+  with TemporaryDirectory() as directory:
+   output=Path(directory)/'live.json';output.write_text('previous snapshot')
+   with self.assertRaisesRegex(ValueError,'Duplicate'):
+    save_snapshot(output,{'sources':[{'status':'OK'}],'observations':[row,row]})
+   self.assertEqual(output.read_text(),'previous snapshot')
  def test_excludes_private_sellers_and_tapprs(self):
   for sid in ['tapprs','olx','facebook','quikr','techenclave']:
    self.assertNotIn(sid,RETAILERS)

@@ -270,13 +270,34 @@ def refresh(previous,reader=fetch):
    statuses.append(dict(id=sid,name=name,url=url,storeType=RETAILERS[sid]['type'],status='RETAINED' if kept else 'UNAVAILABLE',checkedAt=checked,lastSuccessAt=max((r['observedAt'] for r in kept),default=None),offers=len(kept),scope=scope,message='Refresh failed; previous observations retain their original timestamps.' if kept else 'No verified listings available.',error=type(exc).__name__+': '+str(exc)[:150]))
  return dict(generatedAt=now(),sources=statuses,observations=rows)
 
+def save_snapshot(output,result):
+ if not result.get('observations') or not any(s['status']=='OK' for s in result.get('sources',[])):
+  raise ValueError('No source refreshed successfully; previous snapshot was not changed.')
+ keys=[(r['retailerId'],r['externalKey']) for r in result['observations']]
+ if len(set(keys))!=len(keys):raise ValueError('Duplicate retailer listing IDs; previous snapshot was not changed.')
+ for row in result['observations']:
+  validate_destination(row)
+  if row.get('demo'):raise ValueError('Demo rows cannot be published.')
+ output.parent.mkdir(parents=True,exist_ok=True)
+ temp=output.with_suffix('.tmp');temp.write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n');temp.replace(output)
+
+def write_summary(path,result):
+ lines=['## Retailer refresh', '', 'Checked at '+result['generatedAt'], '',
+        '| Store | Result | Offers | Last successful observation |', '|---|---|---:|---|']
+ for s in result['sources']:
+  lines.append(f"| {s['name']} | {s['status']} | {s['offers']} | {s['lastSuccessAt'] or 'Never'} |")
+ lines.extend(['', 'RETAINED means the previous listings and original observation times were preserved.',
+               'If all sources fail, or validation/build fails, the published website is not replaced.', ''])
+ with path.open('a') as report:report.write('\n'.join(lines))
+
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=ROOT/'catalogue'/'live.json');args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=ROOT/'catalogue'/'live.json')
+ parser.add_argument('--summary',type=Path,help='Append a refresh report for GitHub Actions');args=parser.parse_args()
  previous=json.loads(args.output.read_text()) if args.output.exists() else {}
  result=refresh(previous)
- args.output.parent.mkdir(parents=True,exist_ok=True)
- temp=args.output.with_suffix('.tmp');temp.write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n');temp.replace(args.output)
  for s in result['sources']:print(f"{s['name']}: {s['status']} · {s['offers']} offers"+(f" · {s['error']}" if 'error' in s else ''))
+ if args.summary:write_summary(args.summary,result)
+ try:save_snapshot(args.output,result)
+ except ValueError as exc:raise SystemExit(str(exc))
  print(f"Saved {len(result['observations'])} real offers to {args.output}")
- if not any(s['status']=='OK' for s in result['sources']):raise SystemExit(1)
 if __name__=='__main__':main()

@@ -9,7 +9,7 @@ A small India-focused new, used and refurbished camera-lens comparison applicati
 
 **Real source data is the default.** The included snapshot contains 32 observed offers from **Fujifilm X India, Foto Centre India, Just Canon, Amazon India, Flipkart, Cashify, Dacby, RK Deals, Camera Club India, ShopAtSC, Srishti Digilife and Pooja Electronics**. These are selected listings across five mounts, not full inventory from every Indian website. Prices were actually retrieved from public pages; some offers are sold out or available only on backorder. Purchases happen on the seller’s website.
 
-The snapshot is refreshed on demand, not a guaranteed real-time feed. Each offer keeps its own observation timestamp; observations older than 24 hours are labelled stale. Open **Stores & coverage** to inspect source scope and last successful reads.
+GitHub Actions attempts to refresh and publish the snapshot every hour. This is not a guaranteed real-time feed: retailers can block requests or change their pages. Each offer keeps its own observation timestamp; observations older than 24 hours are labelled stale. Open **Stores & coverage** to inspect source scope and last successful reads.
 
 ## Run locally
 
@@ -104,7 +104,15 @@ Sold-out listings are hidden from search by default; enable **Show sold-out list
 
 ## GitHub Pages
 
-In GitHub repository Settings → Pages, choose **GitHub Actions** as the publishing source. `.github/workflows/pages.yml` runs the frontend tests, builds the static snapshot and deploys after pushes to `main`. No API keys or credentials are included in the browser bundle.
+In GitHub repository Settings → Pages, choose **GitHub Actions** as the publishing source. `.github/workflows/pages.yml` runs the frontend tests, builds the static snapshot and deploys after pushes to `main`. It also refreshes retailer pages hourly at **17 minutes past each UTC hour (47 minutes past each hour in India)**. No API keys or credentials are included in the browser bundle.
+
+The scheduled run tests the collector, reads the reviewed product URLs with bounded requests, validates and builds the candidate catalogue, commits only `catalogue/live.json`, then deploys Pages in the same run. Bot commits do not trigger another push workflow. Overlapping runs are serialized; a concurrent user commit causes a normal push rejection rather than being overwritten. No personal access token or running laptop is needed.
+
+Failed stores retain their previous listings and original timestamps. If every store fails, the collector exits unsuccessfully without replacing the snapshot. Tests, build, push or deployment failures leave the live site on its previous deployment. Each refresh writes a per-store report to the Actions run summary. The static site's database history, feedback and AI remain unavailable.
+
+To refresh now, open **Actions → Deploy GitHub Pages → Run workflow**, choose `main`, and leave **Refresh retailer pages before publishing** enabled. Disable that option to redeploy the existing snapshot. To pause hourly collection while retaining push deployments, remove the `schedule` block in `.github/workflows/pages.yml`.
+
+[GitHub schedules are best effort](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule): runs can be delayed or dropped, and public-repository schedules can be disabled after 60 days without repository activity. Monitor failed runs and **Stores & coverage** for retained/stale data.
 
 ```sh
 cd frontend
@@ -113,4 +121,4 @@ npm test
 npm run build:pages
 ```
 
-The output is `docs-site/`; serve it over HTTP to preview. Relative asset links also work under `/secondglass/`. Refresh `catalogue/live.json` with the bounded collector and commit the result to publish newer observations. Deployment never relabels old observations as fresh. Collection remains on demand. The public static site does not collect app usage/feedback or invoke AI. GitHub may keep hosting access logs. Historical database records are not exported; the Pages detail view shows only the published observation.
+The output is `docs-site/`; serve it over HTTP to preview. Relative asset links also work under `/secondglass/`. You can still refresh `catalogue/live.json` locally with the bounded collector and commit the result. Deployment never relabels old observations as fresh. Frontend behavior tests use a recorded fixture, while a separate validation test checks the changing live catalogue without assuming fixed prices or counts. The public static site does not collect app usage/feedback or invoke AI. GitHub may keep hosting access logs. Historical database records are not exported; the Pages detail view shows only the published observation.

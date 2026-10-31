@@ -3,8 +3,18 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {prepareSnapshot} from '../prepare-pages.mjs';
 import {createSnapshotApi} from '../src/pages-api.mjs';
-const source=JSON.parse(await readFile(new URL('../../catalogue/live.json',import.meta.url)));
+// Recorded fixture keeps model/price assertions deterministic as the live catalogue changes.
+const source=JSON.parse(await readFile(new URL('./fixtures/catalogue-2026-10-31.json',import.meta.url)));
 const snapshot=prepareSnapshot(source),api=createSnapshotApi(snapshot,()=>Date.parse(source.generatedAt));
+test('current catalogue can be published without assuming fixed prices or counts',async()=>{
+ const current=prepareSnapshot(JSON.parse(await readFile(new URL('../../catalogue/live.json',import.meta.url))));
+ assert.ok(current.offers.length>0);
+ for(const o of current.offers) {
+  assert.ok(Number.isSafeInteger(o.price_paise)&&o.price_paise>=10000&&o.price_paise<=100_000_000);
+  assert.ok(Number.isFinite(Date.parse(o.observed_at)));
+  assert.ok(['IN_STOCK','OUT_OF_STOCK','BACKORDER','UNKNOWN'].includes(o.availability));
+ }
+});
 test('real snapshot has stable unique IDs and no internal diagnostics',()=>{
  assert.equal(snapshot.offers.length,32);assert.equal(new Set(snapshot.offers.map(o=>o.id)).size,32);
  assert.ok(snapshot.offers.every(o=>!o.demo&&o.source_url.startsWith('https://')));
