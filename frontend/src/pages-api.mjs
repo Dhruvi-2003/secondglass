@@ -55,7 +55,9 @@ export function createSnapshotApi(snapshot, now = () => Date.now()) {
 let loaded;
 export async function snapshotRequest(path, options = {}) {
   if (options.method && options.method !== 'GET') throw new Error('This static site does not collect feedback or run AI requests.');
-  if (!loaded) loaded = fetch(new URL('catalogue.json',document.baseURI))
+  const catalogueUrl=new URL('catalogue.json',document.baseURI);
+  if(typeof __CATALOGUE_VERSION__ !== 'undefined' && __CATALOGUE_VERSION__) catalogueUrl.searchParams.set('v',__CATALOGUE_VERSION__);
+  if (!loaded) loaded = fetch(catalogueUrl)
     .then(r => { if (!r.ok) throw new Error('The catalogue snapshot could not be loaded. Please retry.'); return r.json(); })
     .then(createSnapshotApi).catch(e => { loaded = null; throw e; });
   const request = await loaded;
