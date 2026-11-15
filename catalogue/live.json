@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-15T01:52:23.255995Z",
+  "generatedAt": "2026-11-15T09:18:23.135481Z",
   "sources": [
     {
       "id": "sigmaindia",
@@ -7,8 +7,8 @@
       "url": "https://sigmaindia.in/product/18-50mm-f2-8-dc-dn-c/",
       "storeType": "Official distributor storefront",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:51:35.078686Z",
-      "lastSuccessAt": "2026-11-15T01:51:38.300533Z",
+      "checkedAt": "2026-11-15T09:17:45.621239Z",
+      "lastSuccessAt": "2026-11-15T09:17:48.766792Z",
       "offers": 1,
       "scope": "Official distributor product-family price; exact mount and mount-specific stock are unconfirmed",
       "message": "Public pages checked; selected products only."
@@ -19,8 +19,8 @@
       "url": "https://fujifilmxindia.com/collections/lenses",
       "storeType": "Authorised online store",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:51:39.509840Z",
-      "lastSuccessAt": "2026-11-15T01:51:39.942179Z",
+      "checkedAt": "2026-11-15T09:17:49.893884Z",
+      "lastSuccessAt": "2026-11-15T09:17:50.267284Z",
       "offers": 1,
       "scope": "Selected Fujifilm X lens from the manufacturer-linked authorised online store",
       "message": "Public pages checked; selected products only."
@@ -31,8 +31,8 @@
       "url": "https://fotocentreindia.com/product/sony-fe-50mm-f1-8-lens-in-mumbai-india/",
       "storeType": "Retailer",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:51:41.446017Z",
-      "lastSuccessAt": "2026-11-15T01:51:47.371853Z",
+      "checkedAt": "2026-11-15T09:17:51.507592Z",
+      "lastSuccessAt": "2026-11-15T09:17:56.211076Z",
       "offers": 7,
       "scope": "Selected Sony, Nikon, Sigma and Tamron lenses; mount variants and backorders stay separate",
       "message": "Public pages checked; selected products only."
@@ -43,8 +43,8 @@
       "url": "https://www.justcanon.in/products/canon-rf-50mm-f-1-8-stm",
       "storeType": "Retailer",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:51:49.909306Z",
-      "lastSuccessAt": "2026-11-15T01:51:50.416243Z",
+      "checkedAt": "2026-11-15T09:17:57.460986Z",
+      "lastSuccessAt": "2026-11-15T09:17:57.763441Z",
       "offers": 1,
       "scope": "Selected new Canon RF lens; direct retail variant checkout",
       "message": "Public pages checked; selected products only."
@@ -55,8 +55,8 @@
       "url": "https://www.cashify.in/buy-refurbished-camera-lens/renewed-sony-fe-2-28-mm",
       "storeType": "Refurbisher",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:51:52.121907Z",
-      "lastSuccessAt": "2026-11-15T01:51:54.268119Z",
+      "checkedAt": "2026-11-15T09:17:59.187156Z",
+      "lastSuccessAt": "2026-11-15T09:18:00.209132Z",
       "offers": 2,
       "scope": "Selected refurbished Sony lens variants; stock and policy differences stay explicit",
       "message": "Public pages checked; selected products only."
@@ -67,8 +67,8 @@
       "url": "https://dacby.com/buy/camera-lens/canon-ef-s-55-250mm-f40-56-is-ii-telephoto-zoom-lens-mIlHbTTZRy89fBz545Su",
       "storeType": "Pre-owned retailer",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:51:55.432301Z",
-      "lastSuccessAt": "2026-11-15T01:51:56.333920Z",
+      "checkedAt": "2026-11-15T09:18:01.303129Z",
+      "lastSuccessAt": "2026-11-15T09:18:01.956633Z",
       "offers": 1,
       "scope": "Selected pre-owned Canon EF-S lens; retail checkout",
       "message": "Public pages checked; selected products only."
@@ -78,12 +78,13 @@
       "name": "Flipkart",
       "url": "https://www.flipkart.com/sony-sel50f18-bc-lens/p/itmf3xjg4jvafmwz",
       "storeType": "Marketplace checkout",
-      "status": "OK",
-      "checkedAt": "2026-11-15T01:51:57.344374Z",
+      "status": "RETAINED",
+      "checkedAt": "2026-11-15T09:18:02.963119Z",
       "lastSuccessAt": "2026-11-15T01:51:58.981528Z",
       "offers": 1,
       "scope": "Selected new Sony E 50mm OSS listing; merchant and delivery depend on checkout",
-      "message": "Public pages checked; selected products only."
+      "message": "Refresh failed; previous observations retain their original timestamps.",
+      "error": "HTTPError: HTTP Error 429: Too Many Requests"
     },
     {
       "id": "srishti",
@@ -91,8 +92,8 @@
       "url": "https://www.srishtidigilife.co.in/products/sony-fe-50mm-f-1-8-lens",
       "storeType": "Retailer",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:52:00.085605Z",
-      "lastSuccessAt": "2026-11-15T01:52:00.733028Z",
+      "checkedAt": "2026-11-15T09:18:03.013014Z",
+      "lastSuccessAt": "2026-11-15T09:18:03.660247Z",
       "offers": 1,
       "scope": "Selected new Sony FE 50mm listing",
       "message": "Public pages checked; selected products only."
@@ -103,8 +104,8 @@
       "url": "https://poojaelectronics.in/product/sony-50mm-f1-8-lens-online-buy-mumbai-india/",
       "storeType": "Retailer",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:52:02.190708Z",
-      "lastSuccessAt": "2026-11-15T01:52:03.913832Z",
+      "checkedAt": "2026-11-15T09:18:04.908327Z",
+      "lastSuccessAt": "2026-11-15T09:18:06.921212Z",
       "offers": 1,
       "scope": "Selected new Sony FE 50mm listing",
       "message": "Public pages checked; selected products only."
@@ -114,12 +115,13 @@
       "name": "Amazon India",
       "url": "https://www.amazon.in/s?k=sony+50mm+f1.8+lens",
       "storeType": "Marketplace checkout",
-      "status": "OK",
-      "checkedAt": "2026-11-15T01:52:07.834529Z",
+      "status": "RETAINED",
+      "checkedAt": "2026-11-15T09:18:09.842394Z",
       "lastSuccessAt": "2026-11-15T01:52:09.125689Z",
       "offers": 3,
       "scope": "Selected new Sony/Sigma listings; marketplace seller and checkout price may change",
-      "message": "Public pages checked; selected products only."
+      "message": "Refresh failed; previous observations retain their original timestamps.",
+      "error": "HTTPError: HTTP Error 503: Service Unavailable"
     },
     {
       "id": "rk",
@@ -127,8 +129,8 @@
       "url": "https://www.rkdeals.co.in/product-page/sony-fe-50mm-f-1-8-prime-lens-for-sony-e-mount-full-frame-cameras",
       "storeType": "Used-gear dealer",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:52:10.279825Z",
-      "lastSuccessAt": "2026-11-15T01:52:10.663595Z",
+      "checkedAt": "2026-11-15T09:18:09.987058Z",
+      "lastSuccessAt": "2026-11-15T09:18:12.789135Z",
       "offers": 1,
       "scope": "Selected used Sony lens product pages",
       "message": "Public pages checked; selected products only."
@@ -139,8 +141,8 @@
       "url": "https://cameraclub.in/pages/lens",
       "storeType": "Retailer",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:52:11.740992Z",
-      "lastSuccessAt": "2026-11-15T01:52:16.252912Z",
+      "checkedAt": "2026-11-15T09:18:13.835885Z",
+      "lastSuccessAt": "2026-11-15T09:18:17.590221Z",
       "offers": 9,
       "scope": "Selected Sony products and separately priced condition variants",
       "message": "Public pages checked; selected products only."
@@ -151,8 +153,8 @@
       "url": "https://shopatsc.com/collections/camera-lenses",
       "storeType": "Brand storefront",
       "status": "OK",
-      "checkedAt": "2026-11-15T01:52:17.333868Z",
-      "lastSuccessAt": "2026-11-15T01:52:21.622294Z",
+      "checkedAt": "2026-11-15T09:18:18.642029Z",
+      "lastSuccessAt": "2026-11-15T09:18:21.725289Z",
       "offers": 3,
       "scope": "Selected new Sony lenses; reference prices include sold-out products",
       "message": "Public pages checked; selected products only."
@@ -186,7 +188,7 @@
       "shippingPaise": null,
       "availability": "UNKNOWN",
       "sourceUrl": "https://sigmaindia.in/product/18-50mm-f2-8-dc-dn-c/",
-      "observedAt": "2026-11-15T01:51:38.300533Z",
+      "observedAt": "2026-11-15T09:17:48.766792Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -231,7 +233,7 @@
       "shippingPaise": 0,
       "availability": "IN_STOCK",
       "sourceUrl": "https://fujifilmxindia.com/products/fujifilm-xc35mmf2?variant=50861329645863",
-      "observedAt": "2026-11-15T01:51:39.942179Z",
+      "observedAt": "2026-11-15T09:17:50.267284Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -300,7 +302,7 @@
       "shippingPaise": 0,
       "availability": "IN_STOCK",
       "sourceUrl": "https://fotocentreindia.com/product/sony-fe-50mm-f1-8-lens-in-mumbai-india/",
-      "observedAt": "2026-11-15T01:51:41.635145Z",
+      "observedAt": "2026-11-15T09:17:51.841798Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -381,7 +383,7 @@
       "shippingPaise": 0,
       "availability": "IN_STOCK",
       "sourceUrl": "https://fotocentreindia.com/product/nikon-z-35mm-f-1-4-lens/",
-      "observedAt": "2026-11-15T01:51:43.194677Z",
+      "observedAt": "2026-11-15T09:17:53.680597Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -462,7 +464,7 @@
       "shippingPaise": 0,
       "availability": "BACKORDER",
       "sourceUrl": "https://fotocentreindia.com/product/sigma-12mm-f-1-4-dc-contemporary-lens/?attribute_pa_mounts=canon-rf",
-      "observedAt": "2026-11-15T01:51:45.716513Z",
+      "observedAt": "2026-11-15T09:17:55.071616Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -555,7 +557,7 @@
       "shippingPaise": 0,
       "availability": "BACKORDER",
       "sourceUrl": "https://fotocentreindia.com/product/sigma-12mm-f-1-4-dc-contemporary-lens/?attribute_pa_mounts=fujifilm-x",
-      "observedAt": "2026-11-15T01:51:45.716513Z",
+      "observedAt": "2026-11-15T09:17:55.071616Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -648,7 +650,7 @@
       "shippingPaise": 0,
       "availability": "BACKORDER",
       "sourceUrl": "https://fotocentreindia.com/product/sigma-12mm-f-1-4-dc-contemporary-lens/?attribute_pa_mounts=sony-e",
-      "observedAt": "2026-11-15T01:51:45.716513Z",
+      "observedAt": "2026-11-15T09:17:55.071616Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -741,7 +743,7 @@
       "shippingPaise": 0,
       "availability": "BACKORDER",
       "sourceUrl": "https://fotocentreindia.com/product/tamron-70-300mm-f-4-5-6-3-di-iii-rxd-lens-for-sony-e-india/?attribute_pa_mounts=nikon-z",
-      "observedAt": "2026-11-15T01:51:47.371853Z",
+      "observedAt": "2026-11-15T09:17:56.211076Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -816,7 +818,7 @@
       "shippingPaise": 0,
       "availability": "BACKORDER",
       "sourceUrl": "https://fotocentreindia.com/product/tamron-70-300mm-f-4-5-6-3-di-iii-rxd-lens-for-sony-e-india/?attribute_pa_mounts=sony-e",
-      "observedAt": "2026-11-15T01:51:47.371853Z",
+      "observedAt": "2026-11-15T09:17:56.211076Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -891,7 +893,7 @@
       "shippingPaise": null,
       "availability": "IN_STOCK",
       "sourceUrl": "https://www.justcanon.in/products/canon-rf-50mm-f-1-8-stm?variant=42715101790426",
-      "observedAt": "2026-11-15T01:51:50.416243Z",
+      "observedAt": "2026-11-15T09:17:57.763441Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -942,7 +944,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://www.cashify.in/buy-refurbished-camera-lens/renewed-sony-fe-2-28-mm/233825",
-      "observedAt": "2026-11-15T01:51:54.268119Z",
+      "observedAt": "2026-11-15T09:18:00.209132Z",
       "demo": false,
       "listingType": "REFURBISHED",
       "listingDetails": {
@@ -1016,7 +1018,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://www.cashify.in/buy-refurbished-camera-lens/renewed-sony-fe-2-28-mm/223874",
-      "observedAt": "2026-11-15T01:51:54.268119Z",
+      "observedAt": "2026-11-15T09:18:00.209132Z",
       "demo": false,
       "listingType": "REFURBISHED",
       "productRating": {
@@ -1084,7 +1086,7 @@
       "shippingPaise": 0,
       "availability": "IN_STOCK",
       "sourceUrl": "https://dacby.com/buy/camera-lens/canon-ef-s-55-250mm-f40-56-is-ii-telephoto-zoom-lens-mIlHbTTZRy89fBz545Su",
-      "observedAt": "2026-11-15T01:51:56.333920Z",
+      "observedAt": "2026-11-15T09:18:01.956633Z",
       "demo": false,
       "listingType": "USED",
       "productRating": {
@@ -1220,7 +1222,7 @@
       "shippingPaise": null,
       "availability": "IN_STOCK",
       "sourceUrl": "https://www.srishtidigilife.co.in/products/sony-fe-50mm-f-1-8-lens?variant=45574307971385",
-      "observedAt": "2026-11-15T01:52:00.733028Z",
+      "observedAt": "2026-11-15T09:18:03.660247Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -1277,7 +1279,7 @@
       "shippingPaise": 0,
       "availability": "IN_STOCK",
       "sourceUrl": "https://poojaelectronics.in/product/sony-50mm-f1-8-lens-online-buy-mumbai-india/",
-      "observedAt": "2026-11-15T01:52:03.913832Z",
+      "observedAt": "2026-11-15T09:18:06.921212Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -1484,7 +1486,7 @@
       "shippingPaise": null,
       "availability": "IN_STOCK",
       "sourceUrl": "https://www.rkdeals.co.in/product-page/sony-fe-50mm-f-1-8-prime-lens-for-sony-e-mount-full-frame-cameras",
-      "observedAt": "2026-11-15T01:52:10.663595Z",
+      "observedAt": "2026-11-15T09:18:12.789135Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1529,7 +1531,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://cameraclub.in/products/used-i-sony-e-mount-fe-50mm-f1-8-full-frame-lens?variant=53101927924019",
-      "observedAt": "2026-11-15T01:52:12.557472Z",
+      "observedAt": "2026-11-15T09:18:14.331237Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1567,7 +1569,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://cameraclub.in/products/used-i-sony-e-mount-fe-50mm-f1-8-full-frame-lens?variant=52713196323123",
-      "observedAt": "2026-11-15T01:52:12.557472Z",
+      "observedAt": "2026-11-15T09:18:14.331237Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1605,7 +1607,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://cameraclub.in/products/used-i-sony-e-mount-fe-50mm-f1-8-full-frame-lens?variant=53101927956787",
-      "observedAt": "2026-11-15T01:52:12.557472Z",
+      "observedAt": "2026-11-15T09:18:14.331237Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1643,7 +1645,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://cameraclub.in/products/used-i-sony-e-mount-fe-50mm-f1-8-full-frame-lens?variant=53101927989555",
-      "observedAt": "2026-11-15T01:52:12.557472Z",
+      "observedAt": "2026-11-15T09:18:14.331237Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1681,7 +1683,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://cameraclub.in/products/pre-owned-sony-sel24105g-fe-24-105-mm-f4-g-oss-e-mount-lens?variant=53099040440627",
-      "observedAt": "2026-11-15T01:52:14.438893Z",
+      "observedAt": "2026-11-15T09:18:15.907443Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1719,7 +1721,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://cameraclub.in/products/pre-owned-sony-sel24105g-fe-24-105-mm-f4-g-oss-e-mount-lens?variant=52343316775219",
-      "observedAt": "2026-11-15T01:52:14.438893Z",
+      "observedAt": "2026-11-15T09:18:15.907443Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1757,7 +1759,7 @@
       "shippingPaise": null,
       "availability": "IN_STOCK",
       "sourceUrl": "https://cameraclub.in/products/pre-owned-sony-sel24105g-fe-24-105-mm-f4-g-oss-e-mount-lens?variant=53099040473395",
-      "observedAt": "2026-11-15T01:52:14.438893Z",
+      "observedAt": "2026-11-15T09:18:15.907443Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1795,7 +1797,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://cameraclub.in/products/pre-owned-sony-sel24105g-fe-24-105-mm-f4-g-oss-e-mount-lens?variant=53099040506163",
-      "observedAt": "2026-11-15T01:52:14.438893Z",
+      "observedAt": "2026-11-15T09:18:15.907443Z",
       "demo": false,
       "listingType": "USED",
       "listingDetails": {
@@ -1833,7 +1835,7 @@
       "shippingPaise": null,
       "availability": "IN_STOCK",
       "sourceUrl": "https://cameraclub.in/products/sony-vario-tessar-t-fe-24-70mm-f4-za-oss-lens?variant=53709555958067",
-      "observedAt": "2026-11-15T01:52:16.252912Z",
+      "observedAt": "2026-11-15T09:18:17.590221Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -1871,7 +1873,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://shopatsc.com/products/sel2470gm-q-syx?variant=32781194395787",
-      "observedAt": "2026-11-15T01:52:18.021528Z",
+      "observedAt": "2026-11-15T09:18:19.141331Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -1928,7 +1930,7 @@
       "shippingPaise": null,
       "availability": "OUT_OF_STOCK",
       "sourceUrl": "https://shopatsc.com/products/sel200600g-csyx?variant=33866985865355",
-      "observedAt": "2026-11-15T01:52:19.840582Z",
+      "observedAt": "2026-11-15T09:18:20.415473Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
@@ -1990,7 +1992,7 @@
       "shippingPaise": null,
       "availability": "IN_STOCK",
       "sourceUrl": "https://shopatsc.com/products/sel1625g?variant=42301011296395",
-      "observedAt": "2026-11-15T01:52:21.622294Z",
+      "observedAt": "2026-11-15T09:18:21.725289Z",
       "demo": false,
       "listingType": "NEW",
       "listingDetails": {
